@@ -35,6 +35,7 @@ namespace MagazineFetcher
 					services.AddSingleton<MagazineClassifier>();
 					services.AddSingleton<FileRenamer>();
 					services.AddSingleton<QBittorrentClient>();
+					services.AddSingleton<DownloadWatcher>();
 					services.AddNLog();
 
 				})

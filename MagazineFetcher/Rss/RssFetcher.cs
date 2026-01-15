@@ -51,11 +51,9 @@ public class RssFetcher
 			if (filter.TitleContains.Any(c => title.Contains(c, StringComparison.OrdinalIgnoreCase)))
 				return ParseItem(item);
 
-			if (!string.IsNullOrWhiteSpace(filter.TitleRegex))
-			{
-				if (Regex.IsMatch(title, filter.TitleRegex))
-					return ParseItem(item);
-			}
+			if (!string.IsNullOrWhiteSpace(filter.TitleRegex) &&
+				Regex.IsMatch(title, filter.TitleRegex))
+				return ParseItem(item);
 		}
 
 		return null;

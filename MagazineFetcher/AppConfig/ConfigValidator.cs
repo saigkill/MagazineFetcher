@@ -60,16 +60,19 @@ public static class ConfigValidator
 
 		// qBittorrent
 		if (config.QBittorrentClient == null)
-			throw new Exception("Qbittorrent-Konfiguration fehlt.");
+			throw new Exception("Qbittorrent-Configuration missing.");
 
 		if (string.IsNullOrWhiteSpace(config.QBittorrentClient.BaseUrl))
-			throw new Exception("Qbittorrent.BaseUrl fehlt.");
+			throw new Exception("Qbittorrent.BaseUrl missing.");
 
 		if (string.IsNullOrWhiteSpace(config.QBittorrentClient.Username))
-			throw new Exception("Qbittorrent.Username fehlt.");
+			throw new Exception("Qbittorrent.Username missing.");
 
 		if (string.IsNullOrWhiteSpace(config.QBittorrentClient.Password))
-			throw new Exception("Qbittorrent.Password fehlt.");
+			throw new Exception("Qbittorrent.Password missing.");
+
+		if (string.IsNullOrWhiteSpace(config.QBittorrentClient.DownloadPath))
+			throw new Exception("QBittorrentClient.DownloadPath missing.");
 	}
 }
 

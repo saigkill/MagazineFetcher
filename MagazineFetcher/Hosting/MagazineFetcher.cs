@@ -43,10 +43,13 @@ public class MagazineFetcher()
 	public MagazineClassifier _magazineClassifier { get; set; }
 	public FileRenamer _fileRenamer { get; set; }
 	public QBittorrentClient _qBittorrentClient { get; set; }
+
+	public DownloadWatcher _downloadwatcher { get; set; }
 	public MagazineFetcher(IConfiguration configuration, RssFetcher rssFetcher,
 	TorrentHistory torrentHistory, TorrentDownloader torrentDownloader,
 	ArchiveExtractor archiveExtractor, MagazineClassifier magazineClassifier,
-	FileRenamer fileRenamer, ILogger<MagazineFetcher> logger, QBittorrentClient qBittorrentClient) : this()
+	FileRenamer fileRenamer, ILogger<MagazineFetcher> logger, QBittorrentClient qBittorrentClient,
+	DownloadWatcher downloadWatcher) : this()
 	{
 		_configuration = configuration;
 		_rssFetcher = rssFetcher;
@@ -57,6 +60,7 @@ public class MagazineFetcher()
 		_fileRenamer = fileRenamer;
 		_logger = logger;
 		_qBittorrentClient = qBittorrentClient;
+		_downloadwatcher = downloadWatcher;
 	}
 
 	public async Task StartAsync()
@@ -70,16 +74,16 @@ public class MagazineFetcher()
 		var filter = settings.RssFilter;
 
 		// Get RSS
-		var latest = await _rssFetcher.GetMatchingItemAsync(feedUrl, filter);
-		if (latest == null)
+		var item = await _rssFetcher.GetMatchingItemAsync(feedUrl, filter);
+		if (item == null)
 		{
 			_logger.LogError("RSS doesn't have any entries.");
 			return;
 		}
-		_logger.LogInformation($"Newest RSS-Entry: {latest.Title}");
+		_logger.LogInformation($"Newest RSS-Entry: {item.Title}");
 
 		// Check, if already processed
-		if (_torrentHistory.AlreadyProcessed(latest.Title))
+		if (_torrentHistory.AlreadyProcessed(item.Title))
 		{
 			_logger.LogInformation("Entry already processed. Exiting...");
 			return;
@@ -87,35 +91,25 @@ public class MagazineFetcher()
 
 		// Download torrent
 		_logger.LogInformation("Downloading Torrent...");
-		var torrentBytes = await _torrentDownloader.DownloadTorrentAsync(latest.Link);
+		var torrentBytes = await _torrentDownloader.DownloadTorrentAsync(item.Link);
 
 		// Send Torrent to qBittorrent and get Hash
 		_logger.LogInformation("Sende Torrent an qBittorrent...");
-		var hash = await _qBittorrentClient.AddTorrentAndGetHashAsync(torrentBytes, latest.Title);
+		await _qBittorrentClient.UploadTorrentAsync(torrentBytes);
 
-		_logger.LogInformation($"Torrent-Hash: {hash}");
 		_logger.LogInformation("Waiting for finished Download...");
 
 		// Wait until qBittorrent is finished
 		_logger.LogInformation("Waiting for qBittorrent to finish...");
-		await _qBittorrentClient.WaitForCompletionAsync(hash, TimeSpan.FromHours(2));
+		var downloadDir = await _downloadwatcher.WaitForNewDownloadAsync(
+			settings.QBittorrentClient.DownloadPath, TimeSpan.FromHours(3));
 
 		// Get place of the downloaded files
-		var torrentInfo = await _qBittorrentClient.GetTorrentByHashAsync(latest.Title);
-		if (torrentInfo == null)
-		{
-			_logger.LogError("Torrent not found in QBittorrent");
-			return;
-		}
-
-		var downloadDir = torrentInfo.SavePath;
-		_logger.LogInformation($"Download finished. Saved in: {downloadDir}");
-
-		// Extract Archive
 		var tempDir = Path.Combine("/tmp/magazines", Guid.NewGuid().ToString());
 		Directory.CreateDirectory(tempDir);
 
-		_logger.LogInformation($"Extracting archive to: {tempDir} ...");
+		// Extract Archive
+		_logger.LogInformation("Extracting from {Download} to {TempDir}", downloadDir, tempDir);
 		_archiveExtractor.Extract(downloadDir, tempDir);
 
 		// Classify and rename files
@@ -144,8 +138,19 @@ public class MagazineFetcher()
 		}
 
 		// Update History
-		_torrentHistory.MarkProcessed(latest.Title);
+		_torrentHistory.MarkProcessed(item.Title);
 		_logger.LogInformation("Saved Entry in History");
+
+		// Cleanup
+		try
+		{
+			Directory.Delete(tempDir, recursive: true);
+			_logger.LogInformation("Temporary directory deleted: {TempDir}", tempDir);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning("Could not delete temporary directory {TempDir}: {Message}", tempDir, ex.Message);
+		}
 
 		_logger.LogInformation("Finished Pipeline");
 	}

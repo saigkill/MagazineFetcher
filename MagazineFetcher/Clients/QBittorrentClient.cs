@@ -27,61 +27,37 @@ namespace MagazineFetcher.Clients;
 public class QBittorrentClient
 {
 	private readonly HttpClient _client;
-	private ILogger<QBittorrentClient> _logger;
+	private readonly ILogger<QBittorrentClient> _logger;
 
 	public QBittorrentClient(IConfiguration configuration, ILogger<QBittorrentClient> logger)
 	{
 		_logger = logger;
 		var settings = configuration.Get<AppConfig.AppConfig>();
-		var baseUrl = settings.QBittorrentClient.BaseUrl;
-		var username = settings.QBittorrentClient.Username;
-		var password = settings.QBittorrentClient.Password;
-		_logger.LogInformation(baseUrl);
-		_client = new HttpClient { BaseAddress = new Uri(baseUrl) };
+		var cfg = settings.QBittorrentClient;
+
+		_client = new HttpClient { BaseAddress = new Uri(cfg.BaseUrl) };
 
 		var login = new FormUrlEncodedContent(new[]
 		{
-			new KeyValuePair<string,string>("username", username),
-			new KeyValuePair<string,string>("password", password)
+			new KeyValuePair<string,string>("username", cfg.Username),
+			new KeyValuePair<string,string>("password", cfg.Password)
 		});
 
 		var response = _client.PostAsync("/api/v2/auth/login", login).Result;
 		if (!response.IsSuccessStatusCode)
+		{
+			var body = response.Content.ReadAsStringAsync().Result;
+			_logger.LogError("Login failed: {Status} - {Body}", response.StatusCode, body);
 			throw new Exception("Login with qBittorrent failed.");
-		_logger.LogInformation("QBittorrentClient done");
+		}
+
+		_logger.LogInformation("QBittorrentClient initialized");
 	}
 
-	// ------------------------------------------------------------
-	// 1. Get all Torrents
-	// ------------------------------------------------------------
-	public async Task<List<QbTorrentInfo>> GetAllTorrentsAsync()
+	public async Task UploadTorrentAsync(byte[] torrentBytes)
 	{
-		var json = await _client.GetStringAsync("/api/v2/torrents/info");
-		return JsonSerializer.Deserialize<List<QbTorrentInfo>>(json) ?? new();
-	}
-
-	// ------------------------------------------------------------
-	// 2. Get Torrent per hash
-	// ------------------------------------------------------------
-	public async Task<QbTorrentInfo?> GetTorrentByHashAsync(string hash)
-	{
-		var torrents = await GetAllTorrentsAsync();
-		return torrents.FirstOrDefault(t =>
-			t.Hash.Equals(hash, StringComparison.OrdinalIgnoreCase));
-	}
-
-	// ------------------------------------------------------------
-	// 3. Upload Torrent and get hash
-	// ------------------------------------------------------------
-	public async Task<string> AddTorrentAndGetHashAsync(byte[] torrentBytes, string expectedTitle)
-	{
-		// List before
-		var before = await GetAllTorrentsAsync();
-		var beforeHashes = before.Select(t => t.Hash).ToHashSet();
-
 		_logger.LogInformation("Uploading torrent to qBittorrent…");
 
-		// Upload
 		var content = new MultipartFormDataContent
 		{
 			{ new ByteArrayContent(torrentBytes), "torrents", "file.torrent" }
@@ -89,103 +65,6 @@ public class QBittorrentClient
 
 		var response = await _client.PostAsync("/api/v2/torrents/add", content);
 		if (!response.IsSuccessStatusCode)
-			throw new Exception("Fehler beim Hochladen des Torrents.");
-
-		// Wait until qBittorrent registered the Torrent
-		for (int i = 0; i < 200; i++) // 100 Sekunden
-		{
-			await Task.Delay(500);
-
-			var after = await GetAllTorrentsAsync();
-
-			// 1. Try to find a new hash
-			var newTorrent = after.FirstOrDefault(t => !beforeHashes.Contains(t.Hash));
-			if (newTorrent != null && !string.IsNullOrWhiteSpace(newTorrent.Hash))
-			{
-				_logger.LogInformation("Torrent registered with {Hash}", newTorrent.Hash);
-				return newTorrent.Hash;
-			}
-
-			// 2. Fallback: match by title (NAS often reorders list)
-			var byTitle = after.FirstOrDefault(t =>
-				!string.IsNullOrWhiteSpace(t.Name) &&
-				t.Name.ToLowerInvariant().Contains(expectedTitle, StringComparison.OrdinalIgnoreCase));
-
-			if (byTitle != null && !string.IsNullOrWhiteSpace(byTitle.Hash))
-			{
-				_logger.LogWarning("Fallback title match used. Hash: {Hash}", byTitle.Hash);
-				return byTitle.Hash;
-			}
-
-			// 3. Fallback: new Torrent without hash yet
-			var newUnknown = after.FirstOrDefault(t =>
-				!beforeHashes.Contains(t.Hash) ||
-				string.IsNullOrWhiteSpace(t.Hash) && t.State is "metaDL" or "downloading");
-
-			if (newUnknown != null)
-			{
-				_logger.LogWarning("Torrent detected but hash not available. Waiting...");
-				continue;
-			}
-		}
-
-		throw new Exception("Torrent not registered.");
+			throw new Exception("Error uploading torrent.");
 	}
-
-	// ------------------------------------------------------------
-	// 4. Wait until Torrent is finished
-	// ------------------------------------------------------------
-	public async Task WaitForCompletionAsync(string hash, TimeSpan timeout)
-	{
-		var start = DateTime.UtcNow;
-
-		while (true)
-		{
-			if (DateTime.UtcNow - start > timeout)
-				throw new TimeoutException("Download hat das Zeitlimit überschritten.");
-
-			var info = await GetTorrentByHashAsync(hash);
-
-			if (info == null)
-			{
-				_logger.LogInformation("Torrent noch nicht in der Liste.");
-				await Task.Delay(2000);
-				continue;
-			}
-
-			_logger.LogInformation($"Status: {info.State}");
-
-			if (IsErrorState(info.State))
-				throw new Exception($"Torrentfehler: {info.State}");
-
-			if (IsCompletedState(info.State))
-			{
-				_logger.LogInformation("Torrent download finished.");
-				return;
-			}
-
-			await Task.Delay(3000);
-		}
-	}
-
-	private bool IsCompletedState(string state)
-	{
-		return state is "uploading" or "stalledUP" or "pausedUP" or "queuedUP" or "checkingUP";
-	}
-
-	private bool IsErrorState(string state)
-	{
-		return state is "error" or "missingFiles" or "unknown";
-	}
-}
-
-// ------------------------------------------------------------
-// Datenmodell für qBittorrent
-// ------------------------------------------------------------
-public class QbTorrentInfo
-{
-	public string Name { get; set; }
-	public string Hash { get; set; }
-	public string State { get; set; }
-	public string SavePath { get; set; }
 }
