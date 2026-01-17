@@ -14,14 +14,14 @@ steps:
 
 - task: DotNetCoreCLI@2
   inputs:
-    command: 'publish'
+    command: 'build'
     projects: 'MagazineFetcher/MagazineFetcher.csproj'
-    arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/publish'
-  displayName: 'Build & Publish Console App'
+    arguments: '--configuration Release'
+  displayName: 'Build Console App'
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/publish'
+    rootFolderOrFile: 'MagazineFetcher/bin/Release/net9.0'
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
