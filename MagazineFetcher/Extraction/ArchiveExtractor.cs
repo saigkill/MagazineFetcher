@@ -32,6 +32,34 @@ public class ArchiveExtractor
 		_logger = logger;
 	}
 
+	public void ExtractDirectory(string sourceDir, string outputDir)
+	{
+		var archives = Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories)
+			.Where(f => f.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
+						f.EndsWith(".rar", StringComparison.OrdinalIgnoreCase) ||
+						f.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
+			.ToList();
+
+		if (!archives.Any())
+		{
+			_logger.LogInformation("No archives found. Copying files directly…");
+
+			foreach (var file in Directory.GetFiles(sourceDir, "*.pdf", SearchOption.AllDirectories))
+			{
+				var dest = Path.Combine(outputDir, Path.GetFileName(file));
+				File.Copy(file, dest, overwrite: true);
+			}
+
+			return;
+		}
+
+		foreach (var archive in archives)
+		{
+			_logger.LogInformation("Extracting archive {Archive}", archive);
+			Extract(archive, outputDir);
+		}
+	}
+
 	public void Extract(string archivePath, string outputDir)
 	{
 		try

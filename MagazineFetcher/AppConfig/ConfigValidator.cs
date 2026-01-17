@@ -33,6 +33,10 @@ public static class ConfigValidator
 		if (string.IsNullOrWhiteSpace(config.HistoryFile))
 			throw new Exception("Missing HistoryFile in Config.");
 
+		// Temp Directory
+		if (string.IsNullOrWhiteSpace(config.TempDirectory))
+			throw new Exception("Missing TempDirectory");
+
 		// Magazine mapping
 		if (config.MagazineMapping == null || config.MagazineMapping.Count == 0)
 			throw new Exception("MagazineMapping is emptyor missing.");

@@ -24,7 +24,7 @@ public class AppConfig
 	public string FeedUrl { get; set; } = "";
 	public string WatchDir { get; set; } = "";
 	public string HistoryFile { get; set; } = "";
-
+	public string TempDirectory { get; set; } = "";
 	public string RenamePattern { get; set; } = "{Magazine}-{Issue}-{Year}.pdf";
 	public Dictionary<string, string> MagazineMapping { get; set; } = new();
 	public QBittorrentClientConfig QBittorrentClient { get; set; } = new();

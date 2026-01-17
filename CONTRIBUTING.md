@@ -1,8 +1,8 @@
-﻿# Contributing
+# Contributing
 
 ## HELPING OUT CODING
 
-* Help coding on: https://dev.azure.com/saigkill/AdrTool
+* Help coding on: https://dev.azure.com/saigkill/MagazineFetcher
 * Just ask for a invite to the repository on Azure DevOps. Mail [me](mailto:himself@saschamanns.de).
 
 ## IDEAS

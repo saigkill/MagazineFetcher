@@ -1,3 +1,4 @@
+using MagazineFetcher.AppConfig;
 using MagazineFetcher.Classification;
 using MagazineFetcher.Clients;
 using MagazineFetcher.Extraction;
@@ -8,6 +9,7 @@ using MagazineFetcher.Torrents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 using NLog.Extensions.Logging;
 
@@ -18,11 +20,16 @@ namespace MagazineFetcher
 		static async Task Main(string[] args)
 		{
 			await Host.CreateDefaultBuilder(args)
-				.ConfigureAppConfiguration(cfg =>
+				.ConfigureAppConfiguration((context, services) =>
 				{
-					cfg.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-					cfg.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
-					cfg.AddCommandLine(args);
+					services.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+					services.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+
+					if (context.HostingEnvironment.IsDevelopment())
+					{
+						services.AddUserSecrets<Program>();
+					}
+					services.AddCommandLine(args);
 				})
 				.ConfigureServices((hostContext, services) =>
 				{
@@ -37,6 +44,11 @@ namespace MagazineFetcher
 					services.AddSingleton<QBittorrentClient>();
 					services.AddSingleton<DownloadWatcher>();
 					services.AddNLog();
+
+				})
+				.ConfigureLogging(logging =>
+				{
+					logging.ClearProviders();
 
 				})
 				.RunConsoleAsync();

@@ -56,4 +56,23 @@ public class FileRenamer
 		return match.Success ? match.Groups[1].Value : DateTime.Now.Year.ToString();
 	}
 
+	public string NormalizeFileName(string name)
+	{
+		var replacements = new Dictionary<string, string>
+		{
+			{ "Ç¬", "ü" },
+			{ "ÇÏ", "ä" },
+			{ "Çô", "ö" },
+			{ "Ç¸", "é" },
+			{ "ƒ??", "’" },
+			{ "ƒ?", "’" },
+			{ "ƒ", "’" },
+			{ "Ç?", "e" }
+		};
+
+		foreach (var kv in replacements)
+			name = name.Replace(kv.Key, kv.Value);
+
+		return name;
+	}
 }

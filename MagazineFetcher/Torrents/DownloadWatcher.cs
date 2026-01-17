@@ -30,31 +30,48 @@ public class DownloadWatcher
 		_logger = logger;
 	}
 
-	public async Task<string> WaitForNewDownloadAsync(string downloadPath, TimeSpan timeout)
+	public async Task<string> WaitForDownloadDirectoryAsync(
+		string downloadPath,
+		string expectedTitle,
+		TimeSpan timeout)
 	{
-		var start = DateTime.UtcNow;
-		var before = Directory.GetDirectories(downloadPath).ToHashSet();
-
 		_logger.LogInformation("Watching download directory {Path}", downloadPath);
+
+		var normalizedTitle = Normalize(expectedTitle);
+		var start = DateTime.UtcNow;
 
 		while (DateTime.UtcNow - start < timeout)
 		{
-			var after = Directory.GetDirectories(downloadPath).ToHashSet();
-			var newDirs = after.Except(before).ToList();
+			// 1. Alle Ordner prüfen
+			var dirs = Directory.GetDirectories(downloadPath);
 
-			if (newDirs.Any())
+			foreach (var dir in dirs)
 			{
-				var dir = newDirs.First();
-				_logger.LogInformation("New download directory detected: {Dir}", dir);
+				var name = Path.GetFileName(dir);
 
-				await WaitForStableDirectory(dir);
-				return dir;
+				if (Normalize(name).Contains(normalizedTitle))
+				{
+					_logger.LogInformation("Found matching download directory: {Dir}", dir);
+
+					await WaitForStableDirectory(dir);
+					return dir;
+				}
 			}
 
 			await Task.Delay(2000);
 		}
 
-		throw new TimeoutException("No new download directory detected in time.");
+		throw new TimeoutException("No matching download directory found.");
+	}
+
+	private string Normalize(string input)
+	{
+		return input
+			.ToLowerInvariant()
+			.Replace(" ", "")
+			.Replace(".", "")
+			.Replace("-", "")
+			.Replace("_", "");
 	}
 
 	private async Task WaitForStableDirectory(string dir)
@@ -79,4 +96,5 @@ public class DownloadWatcher
 		}
 	}
 }
+
 

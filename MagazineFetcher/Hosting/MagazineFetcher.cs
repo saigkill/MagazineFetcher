@@ -101,25 +101,29 @@ public class MagazineFetcher()
 
 		// Wait until qBittorrent is finished
 		_logger.LogInformation("Waiting for qBittorrent to finish...");
-		var downloadDir = await _downloadwatcher.WaitForNewDownloadAsync(
-			settings.QBittorrentClient.DownloadPath, TimeSpan.FromHours(3));
+		var downloadDir = await _downloadwatcher.WaitForDownloadDirectoryAsync(
+			settings.QBittorrentClient.DownloadPath,
+			item.Title,
+			TimeSpan.FromHours(3));
 
 		// Get place of the downloaded files
-		var tempDir = Path.Combine("/tmp/magazines", Guid.NewGuid().ToString());
+		var tempRoot = settings.TempDirectory;
+		var tempDir = Path.Combine(tempRoot, Guid.NewGuid().ToString());
 		Directory.CreateDirectory(tempDir);
 
 		// Extract Archive
 		_logger.LogInformation("Extracting from {Download} to {TempDir}", downloadDir, tempDir);
-		_archiveExtractor.Extract(downloadDir, tempDir);
+		_archiveExtractor.ExtractDirectory(downloadDir, tempDir);
 
 		// Classify and rename files
 		foreach (var file in Directory.GetFiles(tempDir, "*.pdf", SearchOption.AllDirectories))
 		{
-			var fileName = Path.GetFileName(file);
+			var fileName = _fileRenamer.NormalizeFileName(Path.GetFileName(file));
 			var magazinePath = _magazineClassifier.Classify(fileName);
 			if (magazinePath == null)
 			{
 				_logger.LogInformation($"Cant classify file: {fileName}");
+				continue;
 			}
 
 			var year = _fileRenamer.ExtractYear(fileName);
@@ -128,6 +132,7 @@ public class MagazineFetcher()
 				fileName
 				);
 
+			newName = _fileRenamer.NormalizeFileName(newName);
 			var targetDir = Path.Combine(magazinePath, year);
 			Directory.CreateDirectory(targetDir);
 

@@ -1,0 +1,42 @@
+trigger:
+  tags:
+    include:
+      - 'v*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '9.x'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'MagazineFetcher/MagazineFetcher.csproj'
+    arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/publish'
+  displayName: 'Build & Publish Console App'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/publish'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
+    replaceExistingArchive: true
+  displayName: 'Create ZIP'
+
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: 'github.com_saigkill'
+    repositoryName: 'saigkill/MagazineFetcher'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'gitTag'
+    assets: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
+    title: 'Release $(Build.SourceBranchName)'
+    isDraft: false
+    isPreRelease: false
+  displayName: 'Create GitHub Release'
