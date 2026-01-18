@@ -35,7 +35,7 @@ Finds the correct download directory based on the title and waits until the down
 Supports ZIP, RAR, and 7z archives — or copies PDFs directly if no archives are present.
 
 * Filename Normalization  
-Fixes encoding issues from Immortuos (e.g., Ç¬, ÇÏ, Ç?) and converts them into clean characters (ü, ä, e, etc.).
+Fixes encoding issues (e.g., Ç¬, ÇÏ, Ç?) and converts them into clean characters (ü, ä, e, etc.).
 
 * Classification & Sorting  
 Automatically assigns magazines to target folders based on a configurable mapping.
@@ -80,7 +80,7 @@ Example `appsettings.json`
 }
 ```
 
-🧩 Key Components
+## 🧩 Key Components
 * DownloadWatcher
 Detects the correct download directory based on the torrent title
 
@@ -108,7 +108,7 @@ Extracts year and issue
 
 * Builds new filenames based on the configured pattern
 
-🧪 Debugging on Windows
+## 🧪 Debugging on Windows
 * Map your NAS directory as a network drive (e.g., M:)
 
 * Create appsettings.Development.json with Windows paths
@@ -124,12 +124,7 @@ Example `appsettings.Development.json`
 
 ## Installation
 
-Alternate to the NuGet.org packaage, you can use the Azure Feed: https://pkgs.dev.azure.com/saigkill/AdrTool/_packaging/SaigkillsAdrFeed/nuget/v3/index.json
-
-To install the tool, run the following command in the powershell or cmd:
-```powershell
-dotnet tool install --global Saigkill.adr-tool.CLI
-```
+tbd
 
 ## ▶️ Running the Application
 *On Linux (NAS)*

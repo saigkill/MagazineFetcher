@@ -83,6 +83,7 @@ steps:
       cd $DIR
       git remote add github https://saigkill:$(GithubPAT)@github.com/saigkill/$DIR.git
       git push github --mirror
+  displayName: 'Mirror to Github'
 
 - task: ArchiveFiles@2
   condition: eq(variables['PipelineType'], 'prod')
