@@ -1,5 +1,5 @@
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
 
 steps:
 - task: UseDotNet@2
@@ -56,22 +56,23 @@ steps:
 - task: AdvancedSecurity-Publish@1
   displayName: Perform CodeQL analysis
 
-- task: PowerShell@2
+- task: Bash@3
   inputs:
     targetType: 'inline'
     script: |
-      $DIR = "MagazineFetcher"
-      if (Test-Path $DIR) {
-          Remove-Item -Recurse -Force $DIR
-          Write-Output "Das Verzeichnis wurde gelöscht."
-      } else {
-          Write-Output "Das Verzeichnis existiert nicht."
-      }
+      DIR="MagazineFetcher"
       
-      git clone --mirror https://saigkill:$(AzurePAT)@dev.azure.com/saigkill/$DIR/_git/$DIR ./$DIR --verbose
+      if [ -d "$DIR" ]; then
+          rm -rf "$DIR"
+          echo "Das Verzeichnis '$DIR' wurde gelöscht."
+      else
+          echo "Das Verzeichnis '$DIR' existiert nicht."
+      fi
+      
+      git clone --mirror https://saigkill:$AzurePAT@dev.azure.com/saigkill/$DIR/_git/$DIR ./$DIR --verbose
       cd $DIR
       git remote add github https://saigkill:$(GithubPAT)@github.com/saigkill/$DIR.git
-      git push github --mirror      
+      git push github --mirror
   displayName: 'Mirror to Github'
 
 - task: ArchiveFiles@2
@@ -93,7 +94,8 @@ steps:
     target: '$(Build.SourceVersion)'
     tagSource: 'gitTag'
     assets: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
-    title: 'Release $(Build.SourceBranch:refs/tags/) (Linux)'
+    title: 'Release $(Build.SourceBranch:refs/tags/) (Windows)'
     isDraft: false
     isPreRelease: false
+
   displayName: 'Create GitHub Release'
