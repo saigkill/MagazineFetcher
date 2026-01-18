@@ -81,7 +81,7 @@ steps:
       
       git clone --mirror https://saigkill:$AzurePAT@dev.azure.com/saigkill/$DIR/_git/$DIR ./$DIR --verbose
       cd $DIR
-      git remote add github https://saigkill:$GithubPAT@github.com/saigkill/$DIR.git
+      git remote add github https://saigkill:$(GithubPAT)@github.com/saigkill/$DIR.git
       git push github --mirror
 
 - task: ArchiveFiles@2
