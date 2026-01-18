@@ -29,7 +29,7 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: '**/*.csproj'
-    arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/MagazineFetcher'
+    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)/MagazineFetcher'
   displayName: 'Publish Console App'
 
 - task: DotNetCoreCLI@2
@@ -69,7 +69,7 @@ steps:
 - task: ArchiveFiles@2
   condition: eq(variables['PipelineType'], 'prod')
   inputs:
-    rootFolderOrFile: 'MagazineFetcher/bin/Release/net9.0'
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher'
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
