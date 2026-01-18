@@ -1,3 +1,9 @@
+trigger:
+  tags:
+    include:
+      - v*
+pr: none
+
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -94,7 +100,8 @@ steps:
     target: '$(Build.SourceVersion)'
     tagSource: 'gitTag'
     assets: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
-    title: 'Release $(Build.SourceBranchName)'
+    title: 'Release $(Build.SourceBranch:refs/tags/)'
     isDraft: false
     isPreRelease: false
+
   displayName: 'Create GitHub Release'

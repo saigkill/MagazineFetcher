@@ -124,7 +124,9 @@ Example `appsettings.Development.json`
 
 ## Installation
 
-tbd
+* Download the latest Release from [Github](https://github.com/saigkill/MagazineFetcher/releases).
+* Unzip the Archive to your desired location.
+* Add a cron entry to run the app regularly (e.g. daily)
 
 ## ▶️ Running the Application
 *On Linux (NAS)*
