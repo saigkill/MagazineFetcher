@@ -60,7 +60,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $DIR = "AdrTool"
+      $DIR = "MagazineFetcher"
       if (Test-Path $DIR) {
           Remove-Item -Recurse -Force $DIR
           Write-Output "Das Verzeichnis wurde gelöscht."
