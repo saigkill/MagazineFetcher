@@ -21,6 +21,7 @@ steps:
   inputs:
     languages: 'csharp'
     querysuite: 'security-and-quality'
+  displayName: 'Initialize CodeQL'
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -34,7 +35,9 @@ steps:
     azureSubscription: 'Nutzungsbasierte Bezahlung (7872a12f-66bb-46b3-8b12-edfaa181e48c)'
     command: 'publish'
     publishWebProjects: false
-    projects: './MagazineFetcher.slnx'
+    projects: '**/*.csproj'
+    arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/MagazineFetcher'
+  displayName: 'Publish Console App'
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -43,6 +46,7 @@ steps:
     projects: '**/*[Tt]est*/*.csproj'
     arguments: '--collect:"XPlat Code Coverage" --logger:junit /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
     testRunTitle: 'dotnet test'
+  displayName: 'Run Unit Tests'
 
 - task: AdvancedSecurity-Codeql-Analyze@1
   displayName: Perform CodeQL analysis
@@ -52,16 +56,19 @@ steps:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**/TestResults/TestResults.xml'
     testRunTitle: 'Run Testresults'
+  displayName: 'Publish Test Results'
 
 - task: PublishCodeCoverageResults@2
   inputs:
     summaryFileLocation: '$(Build.SourcesDirectory)/**/coverage.*.cobertura.xml'
     pathToSources: '$(System.DefaultWorkingDirectory)/**/coverage'
+  displayName: 'Publish Code Coverage Results'
 
 - task: reportgenerator@5
   inputs:
     reports: '$(Build.SourcesDirectory)/**/coverage.*.cobertura.xml'
     targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+  displayName: 'Generate Code Coverage Report'
 
 - task: AdvancedSecurity-Publish@1
   displayName: Perform CodeQL analysis
