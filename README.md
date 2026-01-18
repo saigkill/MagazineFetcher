@@ -1,4 +1,4 @@
-# adr-cli
+# MagazineFetcher
 MagazineFetcher is an automated tool that downloads, extracts, normalizes, classifies, renames, and organizes digital magazines and newspapers.
 It is designed for NAS environments (Synology, QNAP, Unraid) but also supports full debugging and development under Windows.
 
@@ -8,24 +8,17 @@ The tool integrates with qBittorrent, processes RSS feeds (e.g., Immortuos), and
 
 |What|Where|
 |---|---|
-| Code | https://dev.azure.com/saigkill/AdrTool |
-| Docs | https://moongladesm.blob.core.windows.net/docs/_AdrTool/index.html |
+| Code | https://dev.azure.com/saigkill/MagazineFetcher |
 
 |What|Status|
 |---|---|
-|Continuous Integration Prod | [![Build status](https://dev.azure.com/saigkill/AdrTool/_apis/build/status/AdrTool-ASP.NET%20Core-CI-Prod)](https://dev.azure.com/saigkill/AdrTool/_build/latest?definitionId=68)|
-|Continuous Integration Stage | [![Build status](https://dev.azure.com/saigkill/AdrTool/_apis/build/status/AdrTool-.NET%20Desktop-CI)](https://dev.azure.com/saigkill/AdrTool/_build/latest?definitionId=67) |
-|Deployment Prod | [![Deployment status](https://vsrm.dev.azure.com/saigkill/_apis/public/Release/badge/d45d65b6-85d0-4829-a3b1-e6794b2ec791/2/2)](https://dev.azure.com/saigkill/AdrTool/_release?_a=releases&view=mine&definitionId=2) |
-|Deployment Stage | [![Deployment status](https://vsrm.dev.azure.com/saigkill/_apis/public/Release/badge/d45d65b6-85d0-4829-a3b1-e6794b2ec791/1/1)](https://dev.azure.com/saigkill/AdrTool/_release?definitionId=1&view=mine&_a=releases) |
-|Code Coverage | [![Coverage](https://img.shields.io/azure-devops/coverage/saigkill/AdrTool/68)](https://dev.azure.com/saigkill/AdrTool/_build/latest?definitionId=68) |
-|Bugreports|[![GitHub issues](https://img.shields.io/github/issues/saigkill/adr-tool)](https://github.com/saigkill/adr-tool/issues)
+|Continuous Integration Prod | [![Build Status](https://dev.azure.com/saigkill/MagazineFetcher/_apis/build/status%2FMagazineFetcher-Productive?branchName=master)](https://dev.azure.com/saigkill/MagazineFetcher/_build/latest?definitionId=83&branchName=master)|
+|Continuous Integration Stage | [![Build Status](https://dev.azure.com/saigkill/MagazineFetcher/_apis/build/status%2FMagazineFetcher-Stage?branchName=develop)](https://dev.azure.com/saigkill/MagazineFetcher/_build/latest?definitionId=82&branchName=develop) |
+|Code Coverage | [![Coverage](https://img.shields.io/azure-devops/coverage/saigkill/MagazineFetcher/82)](https://dev.azure.com/saigkill/AdrTool/_build/latest?definitionId=82) |
+|Bugreports|[![GitHub issues](https://img.shields.io/github/issues/saigkill/MagazineFetcher)](https://github.com/saigkill/MagazineFetcher/issues)
 |Blog|[![Blog](https://img.shields.io/badge/Blog-Saigkill-blue)](https://saschamanns.de)|
 
-|Name|Status|Version|
-|---|---|---|
-|Saigkill.adr-tool.CLI| ![Nuget Downloads](https://img.shields.io/nuget/dt/Saigkill.adr-tool.CLI) | ![Nuget Version](https://img.shields.io/nuget/v/Saigkill.adr-tool.CLI) |
-
-File a bug report [on Github](https://github.com/saigkill/adr-tool/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
+File a bug report [on Github](https://github.com/saigkill/MagazineFetcher/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
 
 ## 🚀Features
 
@@ -173,4 +166,11 @@ Folder Structure
 
 ## Usage
 
-Look at the [documentation](https://moongladesm.blob.core.windows.net/docs/_AdrTool/index.html) for usage instructions.
+  * Get a RSS Feed what contains a regualy published Torrent with your wished magazines.
+  * Place that FeedUrl in the appsettings.json.
+  * Set a valid path for the "TempDirectory" and the "HistoryFile".
+  * Choose a naming Pattern in "RenamePattern".
+  * Also fill the QBittorrent Settings in the Correspnding Part.
+  * Inside the "RssFilter" you can set the name of the torrent files you want to watch.
+  * Finally map the magazines you want to download to your target folders in "MagazineMapping".
+  * Just start the app and see the magic happens.

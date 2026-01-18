@@ -17,6 +17,11 @@ steps:
     packageType: 'sdk'
     version: '9.x'
 
+- task: AdvancedSecurity-Codeql-Init@1
+  inputs:
+    languages: 'csharp'
+    querysuite: 'security-and-quality'
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
@@ -24,7 +29,30 @@ steps:
     arguments: '--configuration Release'
   displayName: 'Build Console App'
 
+- task: AdvancedSecurity-Codeql-Analyze@1
+  inputs:
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/TestResults/TestResults.xml'
+    testRunTitle: 'Run Testresults'
+
+- task: PublishCodeCoverageResults@2
+  inputs:
+    summaryFileLocation: '$(Build.SourcesDirectory)/**/coverage.*.cobertura.xml'
+    pathToSources: '$(System.DefaultWorkingDirectory)/**/coverage'
+
+- task: reportgenerator@5
+  inputs:
+    reports: '$(Build.SourcesDirectory)/**/coverage.*.cobertura.xml'
+    targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+
+- task: AdvancedSecurity-Publish@1
+  inputs:
+
 - task: ArchiveFiles@2
+  condition: eq(variables['PipelineType'], 'productive')
   inputs:
     rootFolderOrFile: 'MagazineFetcher/bin/Release/net9.0'
     includeRootFolder: false
@@ -34,6 +62,7 @@ steps:
   displayName: 'Create ZIP'
 
 - task: GitHubRelease@1
+  condition: eq(variables['PipelineType'], 'productive')
   inputs:
     gitHubConnection: 'github.com_saigkill'
     repositoryName: 'saigkill/MagazineFetcher'
