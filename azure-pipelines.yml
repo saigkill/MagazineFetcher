@@ -52,7 +52,7 @@ steps:
   inputs:
 
 - task: ArchiveFiles@2
-  condition: eq(variables['PipelineType'], 'productive')
+  condition: eq(variables['PipelineType'], 'prod')
   inputs:
     rootFolderOrFile: 'MagazineFetcher/bin/Release/net9.0'
     includeRootFolder: false
@@ -62,7 +62,7 @@ steps:
   displayName: 'Create ZIP'
 
 - task: GitHubRelease@1
-  condition: eq(variables['PipelineType'], 'productive')
+  condition: eq(variables['PipelineType'], 'prod')
   inputs:
     gitHubConnection: 'github.com_saigkill'
     repositoryName: 'saigkill/MagazineFetcher'
