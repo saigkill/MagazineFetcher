@@ -1,5 +1,5 @@
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
 
 steps:
 - task: UseDotNet@2
@@ -94,7 +94,7 @@ steps:
     target: '$(Build.SourceVersion)'
     tagSource: 'gitTag'
     assets: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
-    title: 'Release $(Build.SourceBranch:refs/tags/) (Linux)'
+    title: 'Release $(Build.SourceBranch:refs/tags/) (Windows)'
     isDraft: false
     isPreRelease: false
 
