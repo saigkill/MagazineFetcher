@@ -56,23 +56,22 @@ steps:
 - task: AdvancedSecurity-Publish@1
   displayName: Perform CodeQL analysis
 
-- task: Bash@3
+- task: PowerShell@2
   inputs:
     targetType: 'inline'
     script: |
-      DIR="MagazineFetcher"
+      $DIR = "AdrTool"
+      if (Test-Path $DIR) {
+          Remove-Item -Recurse -Force $DIR
+          Write-Output "Das Verzeichnis wurde gelöscht."
+      } else {
+          Write-Output "Das Verzeichnis existiert nicht."
+      }
       
-      if [ -d "$DIR" ]; then
-          rm -rf "$DIR"
-          echo "Das Verzeichnis '$DIR' wurde gelöscht."
-      else
-          echo "Das Verzeichnis '$DIR' existiert nicht."
-      fi
-      
-      git clone --mirror https://saigkill:$AzurePAT@dev.azure.com/saigkill/$DIR/_git/$DIR ./$DIR --verbose
+      git clone --mirror https://saigkill:$(AzurePAT)@dev.azure.com/saigkill/$DIR/_git/$DIR
       cd $DIR
       git remote add github https://saigkill:$(GithubPAT)@github.com/saigkill/$DIR.git
-      git push github --mirror
+      git push github --mirror      
   displayName: 'Mirror to Github'
 
 - task: ArchiveFiles@2
@@ -97,5 +96,4 @@ steps:
     title: 'Release $(Build.SourceBranch:refs/tags/) (Linux)'
     isDraft: false
     isPreRelease: false
-
   displayName: 'Create GitHub Release'
