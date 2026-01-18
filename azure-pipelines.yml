@@ -1,10 +1,10 @@
 trigger: none
 pr: none
 
-# Tag-Trigger aktivieren
-tag:
-  include:
-    - v*
+triggers:
+  tag:
+    include:
+      - v*
 
 pool:
   vmImage: 'ubuntu-latest'
