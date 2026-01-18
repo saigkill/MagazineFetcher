@@ -29,6 +29,21 @@ steps:
     arguments: '--configuration Release'
   displayName: 'Build Console App'
 
+- task: DotNetCoreCLI@2
+  inputs:
+    azureSubscription: 'Nutzungsbasierte Bezahlung (7872a12f-66bb-46b3-8b12-edfaa181e48c)'
+    command: 'publish'
+    publishWebProjects: false
+    projects: './MagazineFetcher.slnx'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    azureSubscription: 'Nutzungsbasierte Bezahlung (7872a12f-66bb-46b3-8b12-edfaa181e48c)'
+    command: 'test'
+    projects: '**/*[Tt]est*/*.csproj'
+    arguments: '--collect:"XPlat Code Coverage" --logger:junit /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+    testRunTitle: 'dotnet test'
+
 - task: AdvancedSecurity-Codeql-Analyze@1
   displayName: Perform CodeQL analysis
 
