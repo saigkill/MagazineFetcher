@@ -30,7 +30,7 @@ steps:
   displayName: 'Build Console App'
 
 - task: AdvancedSecurity-Codeql-Analyze@1
-  inputs:
+  displayName: Perform CodeQL analysis
 
 - task: PublishTestResults@2
   inputs:
@@ -49,7 +49,7 @@ steps:
     targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
 
 - task: AdvancedSecurity-Publish@1
-  inputs:
+  displayName: Perform CodeQL analysis
 
 - task: ArchiveFiles@2
   condition: eq(variables['PipelineType'], 'prod')
