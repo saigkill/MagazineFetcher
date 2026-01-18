@@ -30,7 +30,7 @@ public class MagazineClassifier
 	public MagazineClassifier(IConfiguration configuration, ILogger<MagazineClassifier> logger)
 	{
 		var settings = configuration.Get<AppConfig.AppConfig>();
-		_mapping = settings.MagazineMapping;
+		_mapping = settings.MagazineMapping ?? throw new InvalidOperationException("MagazineMapping configuration is missing"); ;
 		_logger = logger;
 	}
 

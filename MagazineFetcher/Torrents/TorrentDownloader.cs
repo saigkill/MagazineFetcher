@@ -23,7 +23,7 @@ namespace MagazineFetcher.Torrents;
 
 public class TorrentDownloader
 {
-	private readonly HttpClient _client = new();
+	public HttpClient _client = new();
 	private ILogger<TorrentDownloader> _logger;
 	public TorrentDownloader(ILogger<TorrentDownloader> logger)
 	{

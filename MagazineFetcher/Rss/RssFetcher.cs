@@ -29,7 +29,7 @@ using System.Xml.Linq;
 
 public class RssFetcher
 {
-	private readonly HttpClient _client = new();
+	public HttpClient _client = new();
 
 	public readonly ILogger<RssFetcher> _logger;
 

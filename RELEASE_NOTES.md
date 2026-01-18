@@ -1,7 +1,7 @@
-﻿# RELEASE NOTES
+# RELEASE NOTES
 
-## Version 1.0.0 (2024-10-03)
+## Version 0.9.0 (2026-01-18)
 
-- Initial release of the ADR Tool.
+- Initial release of the MagazineFetcher.
 - Added basic functionality.
 - Added Docs and Tests.

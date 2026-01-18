@@ -46,7 +46,9 @@ public class FileRenamer
 
 	public string ExtractIssueNumber(string name)
 	{
-		var digits = new string(name.Where(char.IsDigit).ToArray());
+		// Remove year
+		var nameWithoutYear = Regex.Replace(name, @"20\d{2}", "");
+		var digits = new string(nameWithoutYear.Where(char.IsDigit).ToArray());
 		return digits.Length > 0 ? digits : "Unbekannt";
 	}
 
