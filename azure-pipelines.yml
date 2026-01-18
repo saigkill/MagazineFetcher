@@ -1,9 +1,3 @@
-trigger:
-  tags:
-    include:
-      - v*
-pr: none
-
 pool:
   vmImage: 'ubuntu-latest'
 
