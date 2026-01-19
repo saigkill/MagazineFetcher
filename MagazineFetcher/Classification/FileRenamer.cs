@@ -19,7 +19,10 @@
 
 using System.Text.RegularExpressions;
 
+using MagazineFetcher.AppConfig;
+
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Classification;
 
@@ -27,10 +30,9 @@ public class FileRenamer
 {
 	private readonly string _pattern;
 
-	public FileRenamer(IConfiguration configuration)
+	public FileRenamer(IOptions<Configuration> configuration)
 	{
-		var settings = configuration.Get<AppConfig.AppConfig>();
-		_pattern = settings.RenamePattern;
+		_pattern = configuration.Value.RenamePattern;
 	}
 
 	public string BuildNewName(string magazine, string originalName)

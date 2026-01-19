@@ -19,7 +19,10 @@
 
 using System.ComponentModel;
 
+using MagazineFetcher.AppConfig;
+
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Torrents;
 
@@ -27,10 +30,9 @@ public class TorrentHistory
 {
 	private readonly string _historyFile;
 
-	public TorrentHistory(IConfiguration configuration)
+	public TorrentHistory(IOptions<Configuration> configuration)
 	{
-		var settings = configuration.Get<AppConfig.AppConfig>();
-		_historyFile = settings.HistoryFile;
+		_historyFile = configuration.Value.HistoryFile;
 		if (!File.Exists(_historyFile))
 			File.WriteAllText(_historyFile, "");
 	}

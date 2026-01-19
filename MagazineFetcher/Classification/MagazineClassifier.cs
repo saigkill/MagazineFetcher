@@ -17,8 +17,11 @@
 // THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
+using MagazineFetcher.AppConfig;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Classification;
 
@@ -27,10 +30,9 @@ public class MagazineClassifier
 	private readonly Dictionary<string, string> _mapping;
 	private readonly ILogger<MagazineClassifier> _logger;
 
-	public MagazineClassifier(IConfiguration configuration, ILogger<MagazineClassifier> logger)
+	public MagazineClassifier(IOptions<Configuration> configuration, ILogger<MagazineClassifier> logger)
 	{
-		var settings = configuration.Get<AppConfig.AppConfig>();
-		_mapping = settings.MagazineMapping ?? throw new InvalidOperationException("MagazineMapping configuration is missing"); ;
+		_mapping = configuration.Value.MagazineMapping ?? throw new InvalidOperationException("MagazineMapping configuration is missing"); ;
 		_logger = logger;
 	}
 

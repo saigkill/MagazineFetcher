@@ -19,8 +19,11 @@
 
 using System.Text.Json;
 
+using MagazineFetcher.AppConfig;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Clients;
 
@@ -29,11 +32,10 @@ public class QBittorrentClient
 	private readonly HttpClient _client;
 	private readonly ILogger<QBittorrentClient> _logger;
 
-	public QBittorrentClient(IConfiguration configuration, ILogger<QBittorrentClient> logger)
+	public QBittorrentClient(IOptions<Configuration> configuration, ILogger<QBittorrentClient> logger)
 	{
 		_logger = logger;
-		var settings = configuration.Get<AppConfig.AppConfig>();
-		var cfg = settings.QBittorrentClient;
+		var cfg = configuration.Value.QBittorrentClient;
 
 		_client = new HttpClient { BaseAddress = new Uri(cfg.BaseUrl) };
 

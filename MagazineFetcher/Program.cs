@@ -34,6 +34,10 @@ namespace MagazineFetcher
 				.ConfigureServices((hostContext, services) =>
 				{
 					services.AddHostedService<ConsoleHostedService>();
+					services.AddOptions<Configuration>()
+						.Bind(hostContext.Configuration.GetSection("Configuration"))
+						.ValidateDataAnnotations()
+						.ValidateOnStart();
 					services.AddSingleton<Hosting.MagazineFetcher>();
 					services.AddSingleton<TorrentHistory>();
 					services.AddSingleton<RssFetcher>();
@@ -52,7 +56,6 @@ namespace MagazineFetcher
 
 				})
 				.RunConsoleAsync();
-
 		}
 	}
 }

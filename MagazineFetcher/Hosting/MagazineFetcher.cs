@@ -25,6 +25,7 @@ using MagazineFetcher.Torrents;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using NLog;
 
@@ -34,7 +35,7 @@ namespace MagazineFetcher.Hosting;
 
 public class MagazineFetcher()
 {
-	public IConfiguration _configuration { get; set; }
+	public IOptions<Configuration> _configuration { get; set; }
 	public ILogger<MagazineFetcher> _logger { get; set; }
 	public RssFetcher _rssFetcher { get; set; }
 	public TorrentHistory _torrentHistory { get; set; }
@@ -43,9 +44,8 @@ public class MagazineFetcher()
 	public MagazineClassifier _magazineClassifier { get; set; }
 	public FileRenamer _fileRenamer { get; set; }
 	public QBittorrentClient _qBittorrentClient { get; set; }
-
 	public DownloadWatcher _downloadwatcher { get; set; }
-	public MagazineFetcher(IConfiguration configuration, RssFetcher rssFetcher,
+	public MagazineFetcher(IOptions<Configuration> configuration, RssFetcher rssFetcher,
 	TorrentHistory torrentHistory, TorrentDownloader torrentDownloader,
 	ArchiveExtractor archiveExtractor, MagazineClassifier magazineClassifier,
 	FileRenamer fileRenamer, ILogger<MagazineFetcher> logger, QBittorrentClient qBittorrentClient,
@@ -68,10 +68,9 @@ public class MagazineFetcher()
 		var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
 		_logger.LogInformation($"Starte Pipeline im Profil '{environment}'");
 
-		var settings = _configuration.Get<AppConfig.AppConfig>();
-		ConfigValidator.Validate(settings);
-		var feedUrl = settings.FeedUrl;
-		var filter = settings.RssFilter;
+
+		var feedUrl = _configuration.Value.FeedUrl;
+		var filter = _configuration.Value.RssFilter;
 
 		// Get RSS
 		var item = await _rssFetcher.GetMatchingItemAsync(feedUrl, filter);
@@ -102,12 +101,12 @@ public class MagazineFetcher()
 		// Wait until qBittorrent is finished
 		_logger.LogInformation("Waiting for qBittorrent to finish...");
 		var downloadDir = await _downloadwatcher.WaitForDownloadDirectoryAsync(
-			settings.QBittorrentClient.DownloadPath,
+			_configuration.Value.QBittorrentClient.DownloadPath,
 			item.Title,
 			TimeSpan.FromHours(3));
 
 		// Get place of the downloaded files
-		var tempRoot = settings.TempDirectory;
+		var tempRoot = _configuration.Value.TempDirectory;
 		var tempDir = Path.Combine(tempRoot, Guid.NewGuid().ToString());
 		Directory.CreateDirectory(tempDir);
 
@@ -159,6 +158,4 @@ public class MagazineFetcher()
 
 		_logger.LogInformation("Finished Pipeline");
 	}
-
-
 }
