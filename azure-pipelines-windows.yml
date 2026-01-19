@@ -75,7 +75,7 @@ steps:
     target: '$(Build.SourceVersion)'
     tagSource: 'gitTag'
     assets: '$(Build.ArtifactStagingDirectory)/MagazineFetcher-Windows.zip'
-    title: 'Release $(Build.SourceBranch:refs/tags/) (Windows)'
+    title: 'Release $(Build.SourceBranch) (Windows)'
     isDraft: false
     isPreRelease: false
   displayName: 'Create GitHub Release Windows'
