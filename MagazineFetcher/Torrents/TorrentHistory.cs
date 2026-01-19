@@ -37,12 +37,12 @@ public class TorrentHistory
 			File.WriteAllText(_historyFile, "");
 	}
 
-	public bool AlreadyProcessed(string title)
+	internal bool AlreadyProcessed(string title)
 	{
 		return File.ReadAllLines(_historyFile).Contains(title);
 	}
 
-	public void MarkProcessed(string title)
+	internal void MarkProcessed(string title)
 	{
 		File.AppendAllLines(_historyFile, new[] { title });
 	}

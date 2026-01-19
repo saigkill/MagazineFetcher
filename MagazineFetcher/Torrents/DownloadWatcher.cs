@@ -21,21 +21,14 @@ using Microsoft.Extensions.Logging;
 
 namespace MagazineFetcher.Torrents;
 
-public class DownloadWatcher
+public class DownloadWatcher(ILogger<DownloadWatcher> logger)
 {
-	private readonly ILogger<DownloadWatcher> _logger;
-
-	public DownloadWatcher(ILogger<DownloadWatcher> logger)
-	{
-		_logger = logger;
-	}
-
-	public async Task<string> WaitForDownloadDirectoryAsync(
+	internal async Task<string> WaitForDownloadDirectoryAsync(
 		string downloadPath,
 		string expectedTitle,
 		TimeSpan timeout)
 	{
-		_logger.LogInformation("Watching download directory {Path}", downloadPath);
+		logger.LogInformation("Watching download directory {Path}", downloadPath);
 
 		var normalizedTitle = Normalize(expectedTitle);
 		var start = DateTime.UtcNow;
@@ -51,7 +44,7 @@ public class DownloadWatcher
 
 				if (Normalize(name).Contains(normalizedTitle))
 				{
-					_logger.LogInformation("Found matching download directory: {Dir}", dir);
+					logger.LogInformation("Found matching download directory: {Dir}", dir);
 
 					await WaitForStableDirectory(dir);
 					return dir;
@@ -64,7 +57,7 @@ public class DownloadWatcher
 		throw new TimeoutException("No matching download directory found.");
 	}
 
-	private string Normalize(string input)
+	internal string Normalize(string input)
 	{
 		return input
 			.ToLowerInvariant()
@@ -76,7 +69,7 @@ public class DownloadWatcher
 
 	private async Task WaitForStableDirectory(string dir)
 	{
-		_logger.LogInformation("Waiting for directory to become stable: {Dir}", dir);
+		logger.LogInformation("Waiting for directory to become stable: {Dir}", dir);
 
 		long lastSize = -1;
 
@@ -87,7 +80,7 @@ public class DownloadWatcher
 
 			if (size == lastSize)
 			{
-				_logger.LogInformation("Directory is stable: {Dir}", dir);
+				logger.LogInformation("Directory is stable: {Dir}", dir);
 				return;
 			}
 

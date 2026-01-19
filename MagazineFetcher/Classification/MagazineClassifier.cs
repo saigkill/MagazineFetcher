@@ -25,18 +25,11 @@ using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Classification;
 
-public class MagazineClassifier
+public class MagazineClassifier(IOptions<Configuration> configuration, ILogger<MagazineClassifier> logger)
 {
-	private readonly Dictionary<string, string> _mapping;
-	private readonly ILogger<MagazineClassifier> _logger;
+	private readonly Dictionary<string, string> _mapping = configuration.Value.MagazineMapping ?? throw new InvalidOperationException("MagazineMapping configuration is missing");
 
-	public MagazineClassifier(IOptions<Configuration> configuration, ILogger<MagazineClassifier> logger)
-	{
-		_mapping = configuration.Value.MagazineMapping ?? throw new InvalidOperationException("MagazineMapping configuration is missing"); ;
-		_logger = logger;
-	}
-
-	public string? Classify(string fileName)
+	internal string? Classify(string fileName)
 	{
 		foreach (var kv in _mapping)
 		{
@@ -47,7 +40,7 @@ public class MagazineClassifier
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError($"Problem while classifying: {ex.Message}", ex);
+				logger.LogError($"Problem while classifying: {ex.Message}", ex);
 				throw;
 			}
 		}

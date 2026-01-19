@@ -31,6 +31,7 @@ public class Configuration
 	[Required] public Dictionary<string, string> MagazineMapping { get; set; } = new();
 	public QBittorrentClientConfig QBittorrentClient { get; set; } = new();
 	public RssFilterConfig RssFilter { get; set; } = new();
+	public LoggingConfig Logging { get; set; } = new();
 }
 
 public class QBittorrentClientConfig
@@ -45,4 +46,9 @@ public class RssFilterConfig
 {
 	[Required] public List<string> TitleContains { get; set; } = new();
 	public string? TitleRegex { get; set; }
+}
+
+public class LoggingConfig
+{
+	[Required] public string LoggingDirectory { get; set; } = string.Empty;
 }
