@@ -78,5 +78,4 @@ steps:
     title: 'Release $(Build.SourceBranch:refs/tags/) (Windows)'
     isDraft: false
     isPreRelease: false
-
   displayName: 'Create GitHub Release Windows'
