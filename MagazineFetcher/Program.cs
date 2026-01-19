@@ -33,7 +33,14 @@ namespace MagazineFetcher
 				})
 				.ConfigureServices((hostContext, services) =>
 				{
+					var logDir = hostContext.Configuration["Configuration:Logging:LogDirectory"];
+					NLog.LogManager.Configuration.Variables["logDir"] = logDir;
+
 					services.AddHostedService<ConsoleHostedService>();
+					services.AddOptions<Configuration>()
+						.Bind(hostContext.Configuration.GetSection("Configuration"))
+						.ValidateDataAnnotations()
+						.ValidateOnStart();
 					services.AddSingleton<Hosting.MagazineFetcher>();
 					services.AddSingleton<TorrentHistory>();
 					services.AddSingleton<RssFetcher>();
@@ -43,16 +50,13 @@ namespace MagazineFetcher
 					services.AddSingleton<FileRenamer>();
 					services.AddSingleton<QBittorrentClient>();
 					services.AddSingleton<DownloadWatcher>();
-					services.AddNLog();
-
 				})
 				.ConfigureLogging(logging =>
 				{
 					logging.ClearProviders();
-
+					logging.AddNLog();
 				})
 				.RunConsoleAsync();
-
 		}
 	}
 }

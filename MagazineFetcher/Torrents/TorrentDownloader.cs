@@ -21,16 +21,11 @@ using Microsoft.Extensions.Logging;
 
 namespace MagazineFetcher.Torrents;
 
-public class TorrentDownloader
+public class TorrentDownloader(ILogger<TorrentDownloader> logger)
 {
-	public HttpClient _client = new();
-	private ILogger<TorrentDownloader> _logger;
-	public TorrentDownloader(ILogger<TorrentDownloader> logger)
-	{
-		_logger = logger;
-	}
+	internal HttpClient _client = new();
 
-	public async Task<byte[]> DownloadTorrentAsync(string url)
+	internal async Task<byte[]> DownloadTorrentAsync(string url)
 	{
 		try
 		{
@@ -38,7 +33,7 @@ public class TorrentDownloader
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError($"Error while downloading torrent: {ex.Message}", ex);
+			logger.LogError($"Error while downloading torrent: {ex.Message}", ex);
 			throw;
 		}
 	}

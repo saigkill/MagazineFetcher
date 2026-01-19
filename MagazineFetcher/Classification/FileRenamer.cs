@@ -19,19 +19,16 @@
 
 using System.Text.RegularExpressions;
 
+using MagazineFetcher.AppConfig;
+
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Classification;
 
-public class FileRenamer
+public class FileRenamer(IOptions<Configuration> configuration)
 {
-	private readonly string _pattern;
-
-	public FileRenamer(IConfiguration configuration)
-	{
-		var settings = configuration.Get<AppConfig.AppConfig>();
-		_pattern = settings.RenamePattern;
-	}
+	private readonly string _pattern = configuration.Value.RenamePattern;
 
 	public string BuildNewName(string magazine, string originalName)
 	{
@@ -44,7 +41,7 @@ public class FileRenamer
 			.Replace("{Year}", year);
 	}
 
-	public string ExtractIssueNumber(string name)
+	internal string ExtractIssueNumber(string name)
 	{
 		// Remove year
 		var nameWithoutYear = Regex.Replace(name, @"20\d{2}", "");
@@ -52,13 +49,13 @@ public class FileRenamer
 		return digits.Length > 0 ? digits : "Unbekannt";
 	}
 
-	public string ExtractYear(string name)
+	internal string ExtractYear(string name)
 	{
 		var match = Regex.Match(name, @"(20\d{2})");
 		return match.Success ? match.Groups[1].Value : DateTime.Now.Year.ToString();
 	}
 
-	public string NormalizeFileName(string name)
+	internal string NormalizeFileName(string name)
 	{
 		var replacements = new Dictionary<string, string>
 		{

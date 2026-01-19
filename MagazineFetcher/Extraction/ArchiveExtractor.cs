@@ -24,15 +24,11 @@ namespace MagazineFetcher.Extraction;
 using SharpCompress.Archives;
 using SharpCompress.Common;
 
-public class ArchiveExtractor
+public class ArchiveExtractor(ILogger<ArchiveExtractor> logger)
 {
-	public readonly ILogger<ArchiveExtractor> _logger;
-	public ArchiveExtractor(ILogger<ArchiveExtractor> logger)
-	{
-		_logger = logger;
-	}
+	public readonly ILogger<ArchiveExtractor> _logger = logger;
 
-	public void ExtractDirectory(string sourceDir, string outputDir)
+	internal void ExtractDirectory(string sourceDir, string outputDir)
 	{
 		var archives = Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories)
 			.Where(f => f.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
@@ -60,7 +56,7 @@ public class ArchiveExtractor
 		}
 	}
 
-	public void Extract(string archivePath, string outputDir)
+	internal void Extract(string archivePath, string outputDir)
 	{
 		try
 		{

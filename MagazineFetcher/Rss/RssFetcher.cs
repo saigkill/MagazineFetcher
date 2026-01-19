@@ -27,18 +27,13 @@ namespace MagazineFetcher.Rss;
 
 using System.Xml.Linq;
 
-public class RssFetcher
+public class RssFetcher(ILogger<RssFetcher> logger)
 {
 	public HttpClient _client = new();
 
-	public readonly ILogger<RssFetcher> _logger;
+	private readonly ILogger<RssFetcher> _logger = logger;
 
-	public RssFetcher(ILogger<RssFetcher> logger)
-	{
-		_logger = logger;
-	}
-
-	public async Task<RssItem?> GetMatchingItemAsync(string feedUrl, RssFilterConfig filter)
+	internal async Task<RssItem?> GetMatchingItemAsync(string feedUrl, RssFilterConfig filter)
 	{
 		var xml = await _client.GetStringAsync(feedUrl);
 		var doc = XDocument.Parse(xml);

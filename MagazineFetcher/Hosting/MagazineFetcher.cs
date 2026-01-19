@@ -25,6 +25,7 @@ using MagazineFetcher.Torrents;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using NLog;
 
@@ -34,131 +35,130 @@ namespace MagazineFetcher.Hosting;
 
 public class MagazineFetcher()
 {
-	public IConfiguration _configuration { get; set; }
-	public ILogger<MagazineFetcher> _logger { get; set; }
-	public RssFetcher _rssFetcher { get; set; }
-	public TorrentHistory _torrentHistory { get; set; }
-	public TorrentDownloader _torrentDownloader { get; set; }
-	public ArchiveExtractor _archiveExtractor { get; set; }
-	public MagazineClassifier _magazineClassifier { get; set; }
-	public FileRenamer _fileRenamer { get; set; }
-	public QBittorrentClient _qBittorrentClient { get; set; }
-
-	public DownloadWatcher _downloadwatcher { get; set; }
-	public MagazineFetcher(IConfiguration configuration, RssFetcher rssFetcher,
+	public IOptions<Configuration> Configuration { get; set; }
+	public ILogger<MagazineFetcher> Logger { get; set; }
+	public RssFetcher RssFetcher { get; set; }
+	public TorrentHistory TorrentHistory { get; set; }
+	public TorrentDownloader TorrentDownloader { get; set; }
+	public ArchiveExtractor ArchiveExtractor { get; set; }
+	public MagazineClassifier MagazineClassifier { get; set; }
+	public FileRenamer FileRenamer { get; set; }
+	public QBittorrentClient QBittorrentClient { get; set; }
+	public DownloadWatcher Downloadwatcher { get; set; }
+	public MagazineFetcher(IOptions<Configuration> configuration, RssFetcher rssFetcher,
 	TorrentHistory torrentHistory, TorrentDownloader torrentDownloader,
 	ArchiveExtractor archiveExtractor, MagazineClassifier magazineClassifier,
 	FileRenamer fileRenamer, ILogger<MagazineFetcher> logger, QBittorrentClient qBittorrentClient,
 	DownloadWatcher downloadWatcher) : this()
 	{
-		_configuration = configuration;
-		_rssFetcher = rssFetcher;
-		_torrentHistory = torrentHistory;
-		_torrentDownloader = torrentDownloader;
-		_archiveExtractor = archiveExtractor;
-		_magazineClassifier = magazineClassifier;
-		_fileRenamer = fileRenamer;
-		_logger = logger;
-		_qBittorrentClient = qBittorrentClient;
-		_downloadwatcher = downloadWatcher;
+		Configuration = configuration;
+		RssFetcher = rssFetcher;
+		TorrentHistory = torrentHistory;
+		TorrentDownloader = torrentDownloader;
+		ArchiveExtractor = archiveExtractor;
+		MagazineClassifier = magazineClassifier;
+		FileRenamer = fileRenamer;
+		Logger = logger;
+		QBittorrentClient = qBittorrentClient;
+		Downloadwatcher = downloadWatcher;
 	}
 
-	public async Task StartAsync()
+	internal async Task StartAsync()
 	{
 		var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
-		_logger.LogInformation($"Starte Pipeline im Profil '{environment}'");
+		Logger.LogInformation($"Starte Pipeline im Profil '{environment}'");
 
-		var settings = _configuration.Get<AppConfig.AppConfig>();
-		ConfigValidator.Validate(settings);
-		var feedUrl = settings.FeedUrl;
-		var filter = settings.RssFilter;
+
+		var feedUrl = Configuration.Value.FeedUrl;
+		var filter = Configuration.Value.RssFilter;
 
 		// Get RSS
-		var item = await _rssFetcher.GetMatchingItemAsync(feedUrl, filter);
+		var item = await RssFetcher.GetMatchingItemAsync(feedUrl, filter);
 		if (item == null)
 		{
-			_logger.LogError("RSS doesn't have any entries.");
+			Logger.LogError("RSS doesn't have any entries.");
 			return;
 		}
-		_logger.LogInformation($"Newest RSS-Entry: {item.Title}");
+		Logger.LogInformation($"Newest RSS-Entry: {item.Title}");
 
 		// Check, if already processed
-		if (_torrentHistory.AlreadyProcessed(item.Title))
+		if (TorrentHistory.AlreadyProcessed(item.Title))
 		{
-			_logger.LogInformation("Entry already processed. Exiting...");
+			Logger.LogInformation("Entry already processed. Exiting...");
 			return;
 		}
 
 		// Download torrent
-		_logger.LogInformation("Downloading Torrent...");
-		var torrentBytes = await _torrentDownloader.DownloadTorrentAsync(item.Link);
+		Logger.LogInformation("Downloading Torrent...");
+		var torrentBytes = await TorrentDownloader.DownloadTorrentAsync(item.Link);
+
+		// Login to qBittorrent
+		await QBittorrentClient.LoginAsync();
 
 		// Send Torrent to qBittorrent and get Hash
-		_logger.LogInformation("Sende Torrent an qBittorrent...");
-		await _qBittorrentClient.UploadTorrentAsync(torrentBytes);
+		Logger.LogInformation("Sende Torrent an qBittorrent...");
+		await QBittorrentClient.UploadTorrentAsync(torrentBytes);
 
-		_logger.LogInformation("Waiting for finished Download...");
+		Logger.LogInformation("Waiting for finished Download...");
 
 		// Wait until qBittorrent is finished
-		_logger.LogInformation("Waiting for qBittorrent to finish...");
-		var downloadDir = await _downloadwatcher.WaitForDownloadDirectoryAsync(
-			settings.QBittorrentClient.DownloadPath,
+		Logger.LogInformation("Waiting for qBittorrent to finish...");
+		var downloadDir = await Downloadwatcher.WaitForDownloadDirectoryAsync(
+			Configuration.Value.QBittorrentClient.DownloadPath,
 			item.Title,
 			TimeSpan.FromHours(3));
 
 		// Get place of the downloaded files
-		var tempRoot = settings.TempDirectory;
+		var tempRoot = Configuration.Value.TempDirectory;
 		var tempDir = Path.Combine(tempRoot, Guid.NewGuid().ToString());
 		Directory.CreateDirectory(tempDir);
 
 		// Extract Archive
-		_logger.LogInformation("Extracting from {Download} to {TempDir}", downloadDir, tempDir);
-		_archiveExtractor.ExtractDirectory(downloadDir, tempDir);
+		Logger.LogInformation("Extracting from {Download} to {TempDir}", downloadDir, tempDir);
+		ArchiveExtractor.ExtractDirectory(downloadDir, tempDir);
 
 		// Classify and rename files
 		foreach (var file in Directory.GetFiles(tempDir, "*.pdf", SearchOption.AllDirectories))
 		{
-			var fileName = _fileRenamer.NormalizeFileName(Path.GetFileName(file));
-			var magazinePath = _magazineClassifier.Classify(fileName);
+			var fileName = FileRenamer.NormalizeFileName(Path.GetFileName(file));
+			var magazinePath = MagazineClassifier.Classify(fileName);
 			if (magazinePath == null)
 			{
-				_logger.LogInformation($"Cant classify file: {fileName}");
+				Logger.LogInformation($"Cant classify file: {fileName}");
 				continue;
 			}
 
-			var year = _fileRenamer.ExtractYear(fileName);
-			var newName = _fileRenamer.BuildNewName(
+			var year = FileRenamer.ExtractYear(fileName);
+			var newName = FileRenamer.BuildNewName(
 				Path.GetFileNameWithoutExtension(magazinePath),
 				fileName
 				);
 
-			newName = _fileRenamer.NormalizeFileName(newName);
+			newName = FileRenamer.NormalizeFileName(newName);
 			var targetDir = Path.Combine(magazinePath, year);
 			Directory.CreateDirectory(targetDir);
 
 			var targetPath = Path.Combine(targetDir, newName);
 
-			_logger.LogInformation($"Moving file '{fileName}' to '{targetPath}'");
+			Logger.LogInformation($"Moving file '{fileName}' to '{targetPath}'");
 			File.Move(file, Path.Combine(targetDir, newName), overwrite: true);
 		}
 
 		// Update History
-		_torrentHistory.MarkProcessed(item.Title);
-		_logger.LogInformation("Saved Entry in History");
+		TorrentHistory.MarkProcessed(item.Title);
+		Logger.LogInformation("Saved Entry in History");
 
 		// Cleanup
 		try
 		{
 			Directory.Delete(tempDir, recursive: true);
-			_logger.LogInformation("Temporary directory deleted: {TempDir}", tempDir);
+			Logger.LogInformation("Temporary directory deleted: {TempDir}", tempDir);
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning("Could not delete temporary directory {TempDir}: {Message}", tempDir, ex.Message);
+			Logger.LogWarning("Could not delete temporary directory {TempDir}: {Message}", tempDir, ex.Message);
 		}
 
-		_logger.LogInformation("Finished Pipeline");
+		Logger.LogInformation("Finished Pipeline");
 	}
-
-
 }

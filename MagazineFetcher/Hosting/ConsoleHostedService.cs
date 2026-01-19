@@ -25,36 +25,26 @@ using Microsoft.Extensions.Logging;
 
 namespace MagazineFetcher.Hosting;
 
-internal sealed class ConsoleHostedService : IHostedService
+internal sealed class ConsoleHostedService(
+	ILogger<ConsoleHostedService> logger,
+	IHostApplicationLifetime appLifetime,
+	MagazineFetcher magazineFetcherService)
+	: IHostedService
 {
-	private readonly ILogger<ConsoleHostedService> _logger;
-	private readonly IHostApplicationLifetime _appLifetime;
-	private readonly MagazineFetcher _magazineFetcherService;
-
-	public ConsoleHostedService(
-		ILogger<ConsoleHostedService> logger,
-		IHostApplicationLifetime appLifetime,
-		MagazineFetcher magazineFetcherService)
-	{
-		_logger = logger;
-		_appLifetime = appLifetime;
-		_magazineFetcherService = magazineFetcherService;
-	}
-
 	public async Task StartAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
-			_logger.LogInformation("Running the App.");
-			await _magazineFetcherService.StartAsync();
+			logger.LogInformation("Running the App.");
+			await magazineFetcherService.StartAsync();
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Unhandled exception!");
+			logger.LogError(ex, "Unhandled exception!");
 		}
 		finally
 		{
-			_appLifetime.StopApplication();
+			appLifetime.StopApplication();
 		}
 	}
 

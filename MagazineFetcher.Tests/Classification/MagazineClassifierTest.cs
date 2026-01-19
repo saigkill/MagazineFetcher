@@ -22,10 +22,10 @@ using JetBrains.Annotations;
 using MagazineFetcher.Classification;
 
 using FluentAssertions;
-
+using MagazineFetcher.AppConfig;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Options;
 using Moq;
 
 using Xunit;
@@ -35,25 +35,25 @@ namespace MagazineFetcher.Tests.Classification;
 [TestSubject(typeof(MagazineClassifier))]
 public class MagazineClassifierTest
 {
-	private readonly Mock<IConfiguration> _mockConfiguration;
 	private readonly Mock<ILogger<MagazineClassifier>> _mockLogger;
 	private readonly MagazineClassifier _classifier;
 
 	public MagazineClassifierTest()
 	{
-		var inMemorySettings = new Dictionary<string, string>
+		var optionsConfig = new Configuration()
 		{
-			{ "MagazineMapping:Der Spiegel", "/share/Multimedia/Magazines/Der Spiegel" },
-			{ "MagazineMapping:Focus", "/share/Multimedia/Magazines/Focus" },
-			{ "MagazineMapping:Wirtschaftswoche", "/share/Multimedia/Magazines/Wirtschaftswoche" }
+			MagazineMapping =
+			{
+				["Der Spiegel"] = "/share/Multimedia/Magazines/Der Spiegel",
+				["Focus"] = "/share/Multimedia/Magazines/Focus",
+				["Wirtschaftswoche"] = "/share/Multimedia/Magazines/Wirtschaftswoche"
+			}
 		};
 
-		IConfiguration configuration = new ConfigurationBuilder()
-			.AddInMemoryCollection(inMemorySettings)
-			.Build();
+		var options = Options.Create(optionsConfig);
 
 		_mockLogger = new Mock<ILogger<MagazineClassifier>>();
-		_classifier = new MagazineClassifier(configuration, _mockLogger.Object);
+		_classifier = new MagazineClassifier(options, _mockLogger.Object);
 	}
 
 	[Theory]

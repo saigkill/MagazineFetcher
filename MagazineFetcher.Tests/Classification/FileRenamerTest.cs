@@ -21,9 +21,11 @@ using JetBrains.Annotations;
 
 using FluentAssertions;
 
+using MagazineFetcher.AppConfig;
 using MagazineFetcher.Classification;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 using Xunit;
 
@@ -36,16 +38,14 @@ public class FileRenamerTest
 
 	public FileRenamerTest()
 	{
-		var inMemorySettings = new Dictionary<string, string>
+		var inMemorySettings = new Configuration()
 		{
-			{ "RenamePattern", "{Magazine}-{Issue}-{Year}.pdf" }
+			RenamePattern = "{Magazine}-{Issue}-{Year}.pdf"
 		};
 
-		IConfiguration configuration = new ConfigurationBuilder()
-			.AddInMemoryCollection(inMemorySettings)
-			.Build();
+		var options = Options.Create(inMemorySettings);
 
-		_fileRenamer = new FileRenamer(configuration);
+		_fileRenamer = new FileRenamer(options);
 	}
 
 	[Theory]

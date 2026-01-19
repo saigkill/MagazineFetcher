@@ -19,8 +19,11 @@
 
 using System.Text.Json;
 
+using MagazineFetcher.AppConfig;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Clients;
 
@@ -28,33 +31,41 @@ public class QBittorrentClient
 {
 	private readonly HttpClient _client;
 	private readonly ILogger<QBittorrentClient> _logger;
+	private readonly QBittorrentClientConfig _config;
+	private bool _isLoggedIn;
 
-	public QBittorrentClient(IConfiguration configuration, ILogger<QBittorrentClient> logger)
+	public QBittorrentClient(IOptions<Configuration> configuration, ILogger<QBittorrentClient> logger)
 	{
 		_logger = logger;
-		var settings = configuration.Get<AppConfig.AppConfig>();
-		var cfg = settings.QBittorrentClient;
+		_config = configuration.Value.QBittorrentClient;
+		_client = new HttpClient { BaseAddress = new Uri(_config.BaseUrl) };
+		_isLoggedIn = false;
+	}
 
-		_client = new HttpClient { BaseAddress = new Uri(cfg.BaseUrl) };
+	internal async Task LoginAsync()
+	{
+		if (_isLoggedIn)
+			return;
 
 		var login = new FormUrlEncodedContent(new[]
 		{
-			new KeyValuePair<string,string>("username", cfg.Username),
-			new KeyValuePair<string,string>("password", cfg.Password)
+			new KeyValuePair<string,string>("username", _config.Username),
+			new KeyValuePair<string,string>("password", _config.Password)
 		});
 
-		var response = _client.PostAsync("/api/v2/auth/login", login).Result;
+		var response = await _client.PostAsync("/api/v2/auth/login", login);
 		if (!response.IsSuccessStatusCode)
 		{
-			var body = response.Content.ReadAsStringAsync().Result;
+			var body = await response.Content.ReadAsStringAsync();
 			_logger.LogError("Login failed: {Status} - {Body}", response.StatusCode, body);
 			throw new Exception("Login with qBittorrent failed.");
 		}
 
+		_isLoggedIn = true;
 		_logger.LogInformation("QBittorrentClient initialized");
 	}
 
-	public async Task UploadTorrentAsync(byte[] torrentBytes)
+	internal async Task UploadTorrentAsync(byte[] torrentBytes)
 	{
 		_logger.LogInformation("Uploading torrent to qBittorrent…");
 

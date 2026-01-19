@@ -17,40 +17,40 @@
 // THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
-using System.IO;
-
 using FluentAssertions;
 
 using JetBrains.Annotations;
 
+using MagazineFetcher.AppConfig;
+using MagazineFetcher.Torrents;
+
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 using Moq;
 
-using Xunit;
+using System.IO;
 
-using MagazineFetcher.Torrents;
+using Xunit;
 
 namespace MagazineFetcher.Tests.Torrents;
 
 [TestSubject(typeof(TorrentHistory))]
 public class TorrentHistoryTest
 {
-	private readonly IConfiguration _configuration;
+	private readonly IOptions<Configuration> _options;
 	private readonly string _tempHistoryFile;
 
 	public TorrentHistoryTest()
 	{
 		_tempHistoryFile = Path.GetTempFileName();
 
-		var inMemorySettings = new Dictionary<string, string>
+		var inMemorySettings = new Configuration()
 		{
-			{ "HistoryFile", _tempHistoryFile }
+			HistoryFile = _tempHistoryFile
 		};
 
-		_configuration = new ConfigurationBuilder()
-			.AddInMemoryCollection(inMemorySettings)
-			.Build();
+		_options = Options.Create(inMemorySettings);
 	}
 
 	[Fact]
@@ -60,7 +60,7 @@ public class TorrentHistoryTest
 		File.Delete(_tempHistoryFile);
 
 		// Act
-		var torrentHistory = new TorrentHistory(_configuration);
+		var torrentHistory = new TorrentHistory(_options);
 
 		// Assert
 		File.Exists(_tempHistoryFile).Should().BeTrue();
@@ -73,7 +73,7 @@ public class TorrentHistoryTest
 		File.WriteAllText(_tempHistoryFile, "ExistingContent");
 
 		// Act
-		var torrentHistory = new TorrentHistory(_configuration);
+		var torrentHistory = new TorrentHistory(_options);
 
 		// Assert
 		File.ReadAllText(_tempHistoryFile).Should().Be("ExistingContent");
@@ -86,7 +86,7 @@ public class TorrentHistoryTest
 	{
 		// Arrange
 		File.WriteAllLines(_tempHistoryFile, new[] { "Title1" });
-		var torrentHistory = new TorrentHistory(_configuration);
+		var torrentHistory = new TorrentHistory(_options);
 
 		// Act
 		var result = torrentHistory.AlreadyProcessed(title);
@@ -99,7 +99,7 @@ public class TorrentHistoryTest
 	public void MarkProcessed_ShouldAppendTitleToHistoryFile()
 	{
 		// Arrange
-		var torrentHistory = new TorrentHistory(_configuration);
+		var torrentHistory = new TorrentHistory(_options);
 		var title = "NewTitle";
 
 		// Act
@@ -114,7 +114,7 @@ public class TorrentHistoryTest
 	{
 		// Arrange
 		File.WriteAllText(_tempHistoryFile, string.Empty);
-		var torrentHistory = new TorrentHistory(_configuration);
+		var torrentHistory = new TorrentHistory(_options);
 		var title = "FirstTitle";
 
 		// Act
@@ -129,7 +129,7 @@ public class TorrentHistoryTest
 	{
 		// Arrange
 		File.WriteAllText(_tempHistoryFile, string.Empty);
-		var torrentHistory = new TorrentHistory(_configuration);
+		var torrentHistory = new TorrentHistory(_options);
 		var title = "NonExistentTitle";
 
 		// Act
@@ -144,7 +144,7 @@ public class TorrentHistoryTest
 	{
 		// Arrange
 		File.WriteAllLines(_tempHistoryFile, new[] { "Title" });
-		var torrentHistory = new TorrentHistory(_configuration);
+		var torrentHistory = new TorrentHistory(_options);
 
 		// Act
 		var result = torrentHistory.AlreadyProcessed("title");
