@@ -1,100 +1,175 @@
+trigger:
+  branches:
+    include:
+      - develop
+      - master
+  tags:
+    include:
+      - v*
+
 pool:
   vmImage: 'ubuntu-latest'
 
-steps:
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '9.x'
+variables:
+  BuildConfiguration: 'Release'
 
-- task: AdvancedSecurity-Codeql-Init@1
-  inputs:
-    languages: 'csharp'
-    querysuite: 'security-and-quality'
-  displayName: 'Initialize CodeQL'
+stages:
 
-- task: DotNetCoreCLI@2
-  inputs:
-    azureSubscription: 'Nutzungsbasierte Bezahlung (7872a12f-66bb-46b3-8b12-edfaa181e48c)'
-    command: 'publish'
-    publishWebProjects: false
-    projects: '**/*.csproj'
-    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)/MagazineFetcher'
-  displayName: 'Publish Console App'
+# ---------------------------------------------------------
+#  STAGE: BUILD (Linux + Windows parallel)
+# ---------------------------------------------------------
+- stage: Build
+  displayName: "Build Linux + Windows"
+  jobs:
+  - job: MatrixBuild
+    displayName: "Matrix Build"
+    strategy:
+      matrix:
+        linux:
+          vmImage: 'ubuntu-latest'
+          RID: 'linux-x64'
+          ArtifactName: 'MagazineFetcher-Linux.zip'
+        windows:
+          vmImage: 'windows-latest'
+          RID: 'win-x64'
+          ArtifactName: 'MagazineFetcher-Windows.zip'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    azureSubscription: 'Nutzungsbasierte Bezahlung (7872a12f-66bb-46b3-8b12-edfaa181e48c)'
-    command: 'test'
-    projects: '**/*[Tt]est*/*.csproj'
-    arguments: '--collect:"XPlat Code Coverage" --logger:junit /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
-    testRunTitle: 'dotnet test'
-  displayName: 'Run Unit Tests'
+    pool:
+      vmImage: $(vmImage)
 
-- task: AdvancedSecurity-Codeql-Analyze@1
-  displayName: Perform CodeQL analysis
+    steps:
 
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**/TestResults/TestResults.xml'
-    testRunTitle: 'Run Testresults'
-  displayName: 'Publish Test Results'
+    # DotNet SDK
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '9.x'
 
-- task: PublishCodeCoverageResults@2
-  inputs:
-    summaryFileLocation: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'
-    pathToSources: '$(System.DefaultWorkingDirectory)/**/coverage'
-  displayName: 'Publish Code Coverage Results'
+    # CodeQL nur in develop
+    - task: AdvancedSecurity-Codeql-Init@1
+      condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+      inputs:
+        languages: 'csharp'
+        querysuite: 'security-and-quality'
+      displayName: 'Initialize CodeQL'
 
-- task: reportgenerator@5
-  inputs:
-    reports: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'
-    targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
-  displayName: 'Generate Code Coverage Report'
+    # Publish
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: '**/*.csproj'
+        arguments: '--configuration $(BuildConfiguration) -r $(RID) --self-contained true --output $(Build.ArtifactStagingDirectory)/MagazineFetcher'
+      displayName: 'Publish Console App'
 
-- task: AdvancedSecurity-Publish@1
-  displayName: Perform CodeQL analysis
+    # Tests
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'test'
+        projects: '**/*[Tt]est*/*.csproj'
+        arguments: '--collect:"XPlat Code Coverage" --logger:junit /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+        testRunTitle: 'dotnet test'
+      displayName: 'Run Unit Tests'
 
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: |
-      DIR="MagazineFetcher"
-      
-      if [ -d "$DIR" ]; then
-          rm -rf "$DIR"
-          echo "Das Verzeichnis '$DIR' wurde gelöscht."
-      else
-          echo "Das Verzeichnis '$DIR' existiert nicht."
-      fi
-      
-      git clone --mirror https://saigkill:$AzurePAT@dev.azure.com/saigkill/$DIR/_git/$DIR ./$DIR --verbose
-      cd $DIR
-      git remote add github https://saigkill:$(GithubPAT)@github.com/saigkill/$DIR.git
-      git push github --mirror
-  displayName: 'Mirror to Github'
+    # CodeQL Analyse nur in develop
+    - task: AdvancedSecurity-Codeql-Analyze@1
+      condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+      displayName: 'Perform CodeQL analysis'
 
-- task: ArchiveFiles@2
+    # Test Results
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/TestResults/TestResults.xml'
+        testRunTitle: 'Run Testresults'
+      displayName: 'Publish Test Results'
+
+    # Coverage
+    - task: PublishCodeCoverageResults@2
+      inputs:
+        summaryFileLocation: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'
+        pathToSources: '$(System.DefaultWorkingDirectory)/**/coverage'
+      displayName: 'Publish Code Coverage Results'
+
+    # Coverage Report
+    - task: reportgenerator@5
+      inputs:
+        reports: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+      displayName: 'Generate Code Coverage Report'
+
+    # CodeQL Publish nur in develop
+    - task: AdvancedSecurity-Publish@1
+      condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+      displayName: 'Publish CodeQL results'
+
+    # Mirror to GitHub
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: |
+          DIR="MagazineFetcher"
+          
+          if [ -d "$DIR" ]; then
+              rm -rf "$DIR"
+              echo "Das Verzeichnis '$DIR' wurde gelöscht."
+          else
+              echo "Das Verzeichnis '$DIR' existiert nicht."
+          fi
+          
+          git clone --mirror https://saigkill:$AzurePAT@dev.azure.com/saigkill/$DIR/_git/$DIR ./$DIR --verbose
+          cd $DIR
+          git remote add github https://saigkill:$(GithubPAT)@github.com/saigkill/$DIR.git
+          git push github --mirror
+      displayName: 'Mirror to Github'
+
+    # ZIP nur bei Tags
+    - task: ArchiveFiles@2
+      condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(ArtifactName)'
+        replaceExistingArchive: true
+      displayName: 'Create ZIP'
+
+    # Artefakt veröffentlichen
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: $(RID)
+      condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+      displayName: "Publish Artifact"
+
+
+# ---------------------------------------------------------
+#  STAGE: RELEASE (nur bei Tags)
+# ---------------------------------------------------------
+- stage: Release
+  displayName: "Create GitHub Release"
+  dependsOn: Build
   condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-  inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher-Linux.zip'
-    replaceExistingArchive: true
-  displayName: 'Create ZIP'
+  jobs:
+  - job: ReleaseJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
 
-- task: GitHubRelease@1
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-  inputs:
-    gitHubConnection: 'github.com_saigkill'
-    repositoryName: 'saigkill/MagazineFetcher'
-    action: 'create'
-    target: '$(Build.SourceVersion)'
-    tagSource: 'gitTag'
-    assets: '$(Build.ArtifactStagingDirectory)/MagazineFetcher-Linux.zip'
-    title: 'Release $(Build.SourceBranch)'
-    isDraft: false
-    isPreRelease: false
-  displayName: 'Create GitHub Release Linux'
+    - download: current
+      artifact: linux-x64
+
+    - download: current
+      artifact: win-x64
+
+    - task: GitHubRelease@1
+      inputs:
+        gitHubConnection: 'github.com_saigkill'
+        repositoryName: 'saigkill/MagazineFetcher'
+        action: 'create'
+        tagSource: 'gitTag'
+        assets: |
+          $(Pipeline.Workspace)/linux-x64/*.zip
+          $(Pipeline.Workspace)/win-x64/*.zip
+        title: 'Release $(Build.SourceBranchName)'
+        isDraft: false
+        isPreRelease: false
+      displayName: 'Create GitHub Release'
