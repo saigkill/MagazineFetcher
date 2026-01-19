@@ -62,7 +62,7 @@ steps:
     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher-Windows.zip'
     replaceExistingArchive: true
   displayName: 'Create ZIP'
 
@@ -71,12 +71,11 @@ steps:
   inputs:
     gitHubConnection: 'github.com_saigkill'
     repositoryName: 'saigkill/MagazineFetcher'
-    action: 'create'
+    action: 'edit'
     target: '$(Build.SourceVersion)'
     tagSource: 'gitTag'
-    assets: '$(Build.ArtifactStagingDirectory)/MagazineFetcher.zip'
-    title: 'Release $(Build.SourceBranch:refs/tags/) (Windows)'
+    assets: '$(Build.ArtifactStagingDirectory)/MagazineFetcher-Windows.zip'
+    title: 'Release $(Build.SourceBranch) (Windows)'
     isDraft: false
     isPreRelease: false
-
-  displayName: 'Create GitHub Release'
+  displayName: 'Create GitHub Release Windows'
