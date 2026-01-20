@@ -17,6 +17,9 @@
 // THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
+using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
 using MagazineFetcher.AppConfig;
@@ -27,16 +30,67 @@ namespace MagazineFetcher.Rss;
 
 using System.Xml.Linq;
 
-public class RssFetcher(ILogger<RssFetcher> logger)
+public class RssFetcher
 {
-	public HttpClient _client = new();
+	internal HttpClient _client = new();
+	private readonly ILogger<RssFetcher> _logger;
 
-	private readonly ILogger<RssFetcher> _logger = logger;
+	public RssFetcher(ILogger<RssFetcher> logger)
+	{
+		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+		// Vermeide Keep-Alive, um Probleme mit TLS‑Renegotiation / Verbindung-Reset zu reduzieren.
+		_client.DefaultRequestHeaders.ConnectionClose = true;
+
+		// Globalen User-Agent setzen (gilt für alle Requests über diesen HttpClient).
+		// Passe die Zeichenfolge an (z.B. Version, Kontakt-URL).
+		_client.DefaultRequestHeaders.UserAgent.ParseAdd("MagazineFetcher/1.0 (+https://github.com/saigkill/MagazineFetcher)");
+	}
 
 	internal async Task<RssItem?> GetMatchingItemAsync(string feedUrl, RssFilterConfig filter)
 	{
-		var xml = await _client.GetStringAsync(feedUrl);
-		var doc = XDocument.Parse(xml);
+		string xml = string.Empty;
+		try
+		{
+			// Verwende HttpRequestMessage, um künftig feingranulare Einstellungen pro Request zu erlauben
+			using var req = new HttpRequestMessage(HttpMethod.Get, feedUrl);
+			// Ausdrücklich noch einmal: Connection: close (redundant zur Default-Header-Einstellung)
+			req.Headers.ConnectionClose = true;
+
+			using var resp = await _client.SendAsync(req, HttpCompletionOption.ResponseContentRead);
+			resp.EnsureSuccessStatusCode();
+			xml = await resp.Content.ReadAsStringAsync();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error fetching RSS feed from {FeedUrl}. Inner: {Inner}", feedUrl, ex.InnerException?.Message);
+
+			if (ex.InnerException is SocketException se)
+				_logger.LogDebug("SocketException ErrorCode: {Code}, SocketErrorCode: {SocketError}", (int)se.SocketErrorCode, se.SocketErrorCode);
+
+			if (ex.InnerException is WebException we && we.Response is HttpWebResponse resp)
+				_logger.LogDebug("HTTP response status: {Status}", resp.StatusCode);
+
+			return null;
+		}
+
+		if (string.IsNullOrWhiteSpace(xml))
+		{
+			_logger.LogWarning("Received empty RSS feed from {FeedUrl}", feedUrl);
+			return null;
+		}
+
+		XDocument doc;
+		try
+		{
+			doc = XDocument.Parse(xml);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to parse RSS XML from {FeedUrl}", feedUrl);
+			return null;
+		}
+
 		var items = doc.Descendants("item");
 
 		foreach (var item in items)

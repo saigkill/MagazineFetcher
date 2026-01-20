@@ -18,7 +18,8 @@ The tool integrates with qBittorrent, processes RSS feeds (e.g., Immortuos), and
 |Bugreports|[![GitHub issues](https://img.shields.io/github/issues/saigkill/MagazineFetcher)](https://github.com/saigkill/MagazineFetcher/issues)
 |Blog|[![Blog](https://img.shields.io/badge/Blog-Saigkill-blue)](https://saschamanns.de)|
 |Downloads all|![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/total)|
-|Downloads latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher.zip)|
+|Downloads Linux latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher.Linux.zip)|
+|Downloads Windows latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher.Windows.zip)|
 
 File a bug report [on Github](https://github.com/saigkill/MagazineFetcher/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
 
