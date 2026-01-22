@@ -207,6 +207,8 @@ stages:
 
             chmod +x InstallToUbuntu.sh
             sudo ./InstallToUbuntu.sh install
+
+            cd /usr/share/QDK
             
             # Erstelle Environment
             qbuild --create-env $(AppName)          
