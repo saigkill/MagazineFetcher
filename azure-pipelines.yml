@@ -164,11 +164,12 @@ stages:
         - script: |
             set -e
 
-            git clone https://github.com/qnap-dev/QDK
-            cd QDK
-
+            curl https://gist.github.com/saigkill/eb84571759b4a499bd5f14f7a6dcad85/raw/f2ef05e4be3806cde685ae541e5ddaa1c4dd5ef2/InstallToUbuntu.sh -o InstallToUbuntu.sh
+            chmod +x InstallToUbuntu.sh
             sudo ./InstallToUbuntu.sh install
+            cd /usr/share/QDK                     
 
+            # Erstelle Environment
             qbuild --create-env $(AppName)          
 
             # qpkg.cfg erzeugen
