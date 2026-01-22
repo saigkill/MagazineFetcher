@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="UTF-8">
+	<title>MagazineFetcher – Settings</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+	<img src="logo.png" alt="MagazineFetcher Logo"/>
+	<h1>MagazineFetcher – Settings</h1>
+</header>
+	
+	<form id="configForm">
+
+		<h2>General</h2>
+
+		<label>Feed URL</label>
+		<input type="text" id="FeedUrl">
+
+		<label>Watch Directory</label>
+		<input type="text" id="WatchDir">
+
+		<label>History File</label>
+		<input type="text" id="HistoryFile">
+
+		<label>Temp Directory</label>
+		<input type="text" id="TempDirectory">
+
+		<label>Rename Pattern</label>
+		<input type="text" id="RenamePattern">
+
+		<h2>Magazine Mapping</h2>
+		<div id="MagazineMapping"></div>
+		<button type="button" class="add-btn" onclick="addMapping()">+ Add Mapping</button>
+
+		<h2>Modus</h2>
+		<label>Run Mode</label>
+		<select id="RunMode">
+			<option value="Once">Once</option>
+			<option value="Daemon">Daemon</option>
+		</select>
+
+		<label>Check Interval (Minutes)</label>
+		<input type="number" id="CheckIntervalMinutes">
+
+		<h2>QBittorrent Client</h2>
+
+		<label>Base URL</label>
+		<input type="text" id="QB_BaseUrl">
+
+		<label>Username</label>
+		<input type="text" id="QB_Username">
+
+		<label>Password</label>
+		<input type="password" id="QB_Password">
+
+		<label>Download Path</label>
+		<input type="text" id="QB_DownloadPath">
+
+		<h2>RSS Filter</h2>
+
+		<label>Title Contains (one line per entry)</label>
+		<textarea id="Rss_TitleContains" rows="4"></textarea>
+
+		<label>Title Regex</label>
+		<input type="text" id="Rss_TitleRegex">
+
+		<h2>Logging</h2>
+
+		<label>Log Directory</label>
+		<input type="text" id="LogDirectory">
+
+		<button type="submit">Save</button>
+	</form>
+
+	<script>
+		let currentConfig = null;
+
+		async function loadConfig() {
+			const res = await fetch('/api/config');
+			currentConfig = await res.json();
+
+			const cfg = currentConfig.Configuration;
+
+			FeedUrl.value = cfg.FeedUrl;
+			WatchDir.value = cfg.WatchDir;
+			HistoryFile.value = cfg.HistoryFile;
+			TempDirectory.value = cfg.TempDirectory;
+			RenamePattern.value = cfg.RenamePattern;
+
+			RunMode.value = cfg.RunMode;
+			CheckIntervalMinutes.value = cfg.CheckIntervalMinutes;
+
+			QB_BaseUrl.value = cfg.QBittorrentClient.BaseUrl;
+			QB_Username.value = cfg.QBittorrentClient.Username;
+			QB_Password.value = cfg.QBittorrentClient.Password;
+			QB_DownloadPath.value = cfg.QBittorrentClient.DownloadPath;
+
+			Rss_TitleContains.value = cfg.RssFilter.TitleContains.join("\n");
+			Rss_TitleRegex.value = cfg.RssFilter.TitleRegex;
+
+			LogDirectory.value = cfg.Logging.LogDirectory;
+
+			loadMapping(cfg.MagazineMapping);
+		}
+
+		function loadMapping(mapping) {
+			const container = document.getElementById("MagazineMapping");
+			container.innerHTML = "";
+
+			for (const [key, value] of Object.entries(mapping)) {
+				addMapping(key, value);
+			}
+		}
+
+		function addMapping(name = "", path = "") {
+			const container = document.getElementById("MagazineMapping");
+
+			const row = document.createElement("div");
+			row.className = "mapping-row";
+
+			const nameInput = document.createElement("input");
+			nameInput.placeholder = "Magazinname";
+			nameInput.value = name;
+
+			const pathInput = document.createElement("input");
+			pathInput.placeholder = "Zielpfad";
+			pathInput.value = path;
+
+			const removeBtn = document.createElement("button");
+			removeBtn.type = "button";
+			removeBtn.textContent = "X";
+			removeBtn.onclick = () => row.remove();
+
+			row.appendChild(nameInput);
+			row.appendChild(pathInput);
+			row.appendChild(removeBtn);
+
+			container.appendChild(row);
+		}
+
+		document.getElementById("configForm").addEventListener("submit", async (e) => {
+			e.preventDefault();
+
+			const mapping = {};
+			document.querySelectorAll("#MagazineMapping .mapping-row").forEach(row => {
+				const inputs = row.querySelectorAll("input");
+				if (inputs[0].value.trim() !== "")
+					mapping[inputs[0].value] = inputs[1].value;
+			});
+
+			const newConfig = {
+				Configuration: {
+					FeedUrl: FeedUrl.value,
+					WatchDir: WatchDir.value,
+					HistoryFile: HistoryFile.value,
+					TempDirectory: TempDirectory.value,
+					RenamePattern: RenamePattern.value,
+					MagazineMapping: mapping,
+					RunMode: RunMode.value,
+					CheckIntervalMinutes: parseInt(CheckIntervalMinutes.value),
+					QBittorrentClient: {
+						BaseUrl: QB_BaseUrl.value,
+						Username: QB_Username.value,
+						Password: QB_Password.value,
+						DownloadPath: QB_DownloadPath.value
+					},
+					RssFilter: {
+						TitleContains: Rss_TitleContains.value.split("\n").map(x => x.trim()).filter(x => x.length > 0),
+						TitleRegex: Rss_TitleRegex.value
+					},
+					Logging: {
+						LogDirectory: LogDirectory.value
+					}
+				}
+			};
+
+			await fetch('/api/config', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(newConfig)
+			});
+
+			alert("Saved!");
+		});
+
+		loadConfig();
+	</script>
+
+</body>
+</html>

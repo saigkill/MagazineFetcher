@@ -6,22 +6,19 @@ The tool integrates with qBittorrent, processes RSS feeds (e.g., Immortuos), and
 
 ## Badges
 
-|What|Where|
+|W|W|
 |---|---|
-| Code | https://dev.azure.com/saigkill/MagazineFetcher |
-
-|What|Status|
-|---|---|
+|Code  | https://dev.azure.com/saigkill/MagazineFetcher |
 |Continuous Integration Prod | [![Build Status](https://dev.azure.com/saigkill/MagazineFetcher/_apis/build/status%2FMagazineFetcher-Productive?branchName=master)](https://dev.azure.com/saigkill/MagazineFetcher/_build/latest?definitionId=83&branchName=master)|
-|Continuous Integration Stage | [![Build Status](https://dev.azure.com/saigkill/MagazineFetcher/_apis/build/status%2FMagazineFetcher-Stage?branchName=develop)](https://dev.azure.com/saigkill/MagazineFetcher/_build/latest?definitionId=82&branchName=develop) |
-|Code Coverage | [![Coverage](https://img.shields.io/azure-devops/coverage/saigkill/MagazineFetcher/82)](https://dev.azure.com/saigkill/AdrTool/_build/latest?definitionId=82) |
+|Continuous Integration Dev | [![Build Status](https://dev.azure.com/saigkill/MagazineFetcher/_apis/build/status%2FMagazineFetcher-Stage?branchName=develop)](https://dev.azure.com/saigkill/MagazineFetcher/_build/latest?definitionId=82&branchName=develop) |
+|Code Coverage | [![Coverage](https://img.shields.io/azure-devops/coverage/saigkill/MagazineFetcher/82)](https://dev.azure.com/saigkill/MagazineFetcher/_build/latest?definitionId=82) |
 |Bugreports|[![GitHub issues](https://img.shields.io/github/issues/saigkill/MagazineFetcher)](https://github.com/saigkill/MagazineFetcher/issues)
-|Blog|[![Blog](https://img.shields.io/badge/Blog-Saigkill-blue)](https://saschamanns.de)|
 |Downloads all|![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/total)|
-|Downloads Linux latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher.Linux.zip)|
-|Downloads Windows latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher.Windows.zip)|
+|Downloads Linux latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher-Linux.zip)|
+|Downloads Windows latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher-Windows.zip)|
+|Blog|[![Blog](https://img.shields.io/badge/Blog-Saigkill-blue)](https://saschamanns.de)|
 
-File a bug report [on Github](https://github.com/saigkill/MagazineFetcher/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
+File a bug report [on Github](https://github.com/saigkill/MagazineFetcher/issues).
 
 ## 🚀Features
 
@@ -46,7 +43,7 @@ Automatically assigns magazines to target folders based on a configurable mappin
 * Renaming Engine  
 Renames files using a customizable pattern such as:
 ```
-text {MagazineTitle} - {IssueDate:yyyy-MM} - {IssueNumber:D2}.pdf
+{MagazineTitle} - {IssueDate:yyyy-MM} - {IssueNumber:D2}.pdf
 ```
 
 ## 🛠 System Requirements
@@ -125,11 +122,9 @@ Example `appsettings.Development.json`
 "QBittorrentClient:DownloadPath": "M:\\torrent\\finished"
 ```
 
-## Installation
+## Usage
 
-* Download the latest Release from [Github](https://github.com/saigkill/MagazineFetcher/releases).
-* Unzip the Archive to your desired location.
-* Add a cron entry to run the app regularly (e.g. daily)
+* Read the [docs](https://moongladesm.blob.core.windows.net/docs/_MagazineFetcher/index.html)
 
 ## ▶️ Running the Application
 *On Linux (NAS)*
@@ -163,14 +158,3 @@ Folder Structure
 ## 🧹 Cleanup
 * Temporary directories are removed after processing
 * History file is updated automatically
-
-## Usage
-
-  * Get a RSS Feed what contains a regualy published Torrent with your wished magazines.
-  * Place that FeedUrl in the appsettings.json.
-  * Set a valid path for the "TempDirectory" and the "HistoryFile".
-  * Choose a naming Pattern in "RenamePattern".
-  * Also fill the QBittorrent Settings in the Correspnding Part.
-  * Inside the "RssFilter" you can set the name of the torrent files you want to watch.
-  * Finally map the magazines you want to download to your target folders in "MagazineMapping".
-  * Just start the app and see the magic happens.

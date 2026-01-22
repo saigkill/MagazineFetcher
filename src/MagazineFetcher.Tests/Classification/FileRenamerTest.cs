@@ -38,7 +38,7 @@ public class FileRenamerTest
 
 	public FileRenamerTest()
 	{
-		var inMemorySettings = new Configuration()
+		var inMemorySettings = new MagazineFetcherOptions()
 		{
 			RenamePattern = "{Magazine}-{Issue}-{Year}.pdf"
 		};

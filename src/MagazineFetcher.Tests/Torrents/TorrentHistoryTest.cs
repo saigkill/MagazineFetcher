@@ -38,14 +38,14 @@ namespace MagazineFetcher.Tests.Torrents;
 [TestSubject(typeof(TorrentHistory))]
 public class TorrentHistoryTest
 {
-	private readonly IOptions<Configuration> _options;
+	private readonly IOptions<MagazineFetcherOptions> _options;
 	private readonly string _tempHistoryFile;
 
 	public TorrentHistoryTest()
 	{
 		_tempHistoryFile = Path.GetTempFileName();
 
-		var inMemorySettings = new Configuration()
+		var inMemorySettings = new MagazineFetcherOptions()
 		{
 			HistoryFile = _tempHistoryFile
 		};

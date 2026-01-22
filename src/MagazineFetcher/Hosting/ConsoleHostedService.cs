@@ -36,7 +36,7 @@ internal sealed class ConsoleHostedService(
 		try
 		{
 			logger.LogInformation("Running the App.");
-			await magazineFetcherService.StartAsync();
+			await magazineFetcherService.StartAsync(cancellationToken);
 		}
 		catch (Exception ex)
 		{

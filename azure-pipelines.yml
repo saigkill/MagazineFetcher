@@ -140,13 +140,137 @@ stages:
       condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
       displayName: "Publish Artifact"
 
+# ---------------------------------------------------------
+#  STAGE: BUILD QPKG (nur Linux)
+# ---------------------------------------------------------
+- stage: Build_QPKG
+  displayName: "Build QNAP QPKG Package"
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+    - job: qpkg
+      displayName: "Create QPKG Package"
+      pool:
+        vmImage: ubuntu-latest
+
+      steps:
+        - checkout: self
+
+        # Linux-Build herunterladen
+        - task: DownloadPipelineArtifact@2
+          displayName: "Download Linux build output"
+          inputs:
+            artifact: "linux-x64"
+            path: "$(Build.SourcesDirectory)/build-output"
+
+        # QPKG-Struktur erzeugen + Startscript + qpkg.cfg
+        - script: |
+            set -e
+
+            mkdir -p qpkg/build
+            mkdir -p qpkg/logs
+
+            # qpkg.cfg erzeugen
+            cat <<EOF > qpkg/qpkg.cfg
+            QPKG_NAME="MagazineFetcher"
+            QPKG_VER="$(Build.SourceBranchName)"
+            QPKG_AUTHOR="Sascha Manns"
+            QPKG_SUMMARY="Automatic Magazin-Downloader for Torrents via RSS"
+            QPKG_RC_NUM="100"
+            QPKG_SERVICE_PROGRAM="start.sh"
+            EOF
+
+            # Startscript erzeugen
+            cat <<'EOF' > qpkg/start.sh
+            #!/bin/sh
+            QPKG_NAME="MagazineFetcher"
+            QPKG_DIR="$(dirname "$0")"
+            APP_DIR="${QPKG_DIR}/build"
+            LOG_DIR="${QPKG_DIR}/logs"
+            PID_FILE="${QPKG_DIR}/magazinefetcher.pid"
+
+            APP_BIN="${APP_DIR}/MagazineFetcher"            
+
+            mkdir -p "$LOG_DIR"
+
+            start_app() {
+                if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+                    echo "$QPKG_NAME läuft bereits."
+                    exit 0
+                fi
+
+                echo "Starte $QPKG_NAME..."
+
+                nohup "$APP_BIN" >> "$LOG_DIR/output.log" 2>&1 &
+
+                echo $! > "$PID_FILE"
+
+                echo "$QPKG_NAME gestartet (PID $(cat "$PID_FILE"))."
+            }
+
+            stop_app() {
+                if [ ! -f "$PID_FILE" ]; then
+                    echo "$QPKG_NAME läuft nicht."
+                    exit 0
+                fi
+
+                PID=$(cat "$PID_FILE")
+
+                echo "Stoppe $QPKG_NAME (PID $PID)..."
+
+                kill "$PID" 2>/dev/null
+
+                for i in $(seq 1 10); do
+                    if kill -0 "$PID" 2>/dev/null; then
+                        sleep 1
+                    else
+                        break
+                    fi
+                done
+
+                if kill -0 "$PID" 2>/dev/null; then
+                    echo "Prozess reagiert nicht – erzwinge Kill."
+                    kill -9 "$PID" 2>/dev/null
+                fi
+
+                rm -f "$PID_FILE"
+                echo "$QPKG_NAME gestoppt."
+            }
+
+            case "$1" in
+                start) start_app ;;
+                stop) stop_app ;;
+                restart) stop_app; start_app ;;
+                *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+            esac
+
+            exit 0
+            EOF
+
+            chmod +x qpkg/start.sh
+
+            # Build-Output kopieren
+            cp -r build-output/MagazineFetcher/* qpkg/build/
+
+            # QPKG erstellen
+            cd qpkg
+            tar -czf ../MagazineFetcher.qpkg *
+          displayName: "Assemble QPKG"
+
+        # Artifact veröffentlichen
+        - task: PublishPipelineArtifact@1
+          displayName: "Publish QPKG"
+          inputs:
+            targetPath: "$(Build.SourcesDirectory)/MagazineFetcher.qpkg"
+            artifact: "qpkg"
 
 # ---------------------------------------------------------
 #  STAGE: RELEASE (nur bei Tags)
 # ---------------------------------------------------------
 - stage: Release
   displayName: "Create GitHub Release"
-  dependsOn: Build
+  dependsOn: Build, Build_QPKG
   condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
   jobs:
   - job: ReleaseJob
@@ -160,6 +284,12 @@ stages:
     - download: current
       artifact: win-x64
 
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download QPKG"
+      inputs:
+        artifact: "qpkg"
+        path: "$(Build.SourcesDirectory)/release"
+
     - task: GitHubRelease@1
       inputs:
         gitHubConnection: 'github.com_saigkill'
@@ -169,6 +299,7 @@ stages:
         assets: |
           $(Pipeline.Workspace)/linux-x64/*.zip
           $(Pipeline.Workspace)/win-x64/*.zip
+          $(Build.SourcesDirectory)/release/*.qpkg
         title: 'Release $(Build.SourceBranchName)'
         isDraft: false
         isPreRelease: false

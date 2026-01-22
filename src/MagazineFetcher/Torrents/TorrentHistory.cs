@@ -30,7 +30,7 @@ public class TorrentHistory
 {
 	private readonly string _historyFile;
 
-	public TorrentHistory(IOptions<Configuration> configuration)
+	public TorrentHistory(IOptions<MagazineFetcherOptions> configuration)
 	{
 		_historyFile = configuration.Value.HistoryFile;
 		if (!File.Exists(_historyFile))

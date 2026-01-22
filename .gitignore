@@ -10,7 +10,8 @@
 *.userosscache
 *.sln.docstates
 appsettings.Development.json
-appsettings.Development.Windows.json
+_MagazineFetcher
+api/*
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

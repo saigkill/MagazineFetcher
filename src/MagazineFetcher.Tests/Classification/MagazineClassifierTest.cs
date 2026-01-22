@@ -40,7 +40,7 @@ public class MagazineClassifierTest
 
 	public MagazineClassifierTest()
 	{
-		var optionsConfig = new Configuration()
+		var optionsConfig = new MagazineFetcherOptions()
 		{
 			MagazineMapping =
 			{

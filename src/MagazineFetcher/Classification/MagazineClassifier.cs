@@ -25,7 +25,7 @@ using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Classification;
 
-public class MagazineClassifier(IOptions<Configuration> configuration, ILogger<MagazineClassifier> logger)
+public class MagazineClassifier(IOptions<MagazineFetcherOptions> configuration, ILogger<MagazineClassifier> logger)
 {
 	private readonly Dictionary<string, string> _mapping = configuration.Value.MagazineMapping ?? throw new InvalidOperationException("MagazineMapping configuration is missing");
 

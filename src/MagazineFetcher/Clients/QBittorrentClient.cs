@@ -34,7 +34,7 @@ public class QBittorrentClient
 	private readonly QBittorrentClientConfig _config;
 	private bool _isLoggedIn;
 
-	public QBittorrentClient(IOptions<Configuration> configuration, ILogger<QBittorrentClient> logger)
+	public QBittorrentClient(IOptions<MagazineFetcherOptions> configuration, ILogger<QBittorrentClient> logger)
 	{
 		_logger = logger;
 		_config = configuration.Value.QBittorrentClient;

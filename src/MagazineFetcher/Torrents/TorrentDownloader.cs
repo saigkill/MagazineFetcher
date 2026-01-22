@@ -21,9 +21,20 @@ using Microsoft.Extensions.Logging;
 
 namespace MagazineFetcher.Torrents;
 
-public class TorrentDownloader(ILogger<TorrentDownloader> logger)
+public class TorrentDownloader
 {
 	internal HttpClient _client = new();
+	internal ILogger<TorrentDownloader> _logger;
+
+	public TorrentDownloader(ILogger<TorrentDownloader> logger)
+	{
+		// Vermeide Keep-Alive, um Probleme mit TLS‑Renegotiation / Verbindung-Reset zu reduzieren.
+		_client.DefaultRequestHeaders.ConnectionClose = true;
+
+		// Globalen User-Agent setzen (gilt für alle Requests über diesen HttpClient).
+		// Passe die Zeichenfolge an (z.B. Version, Kontakt-URL).
+		_client.DefaultRequestHeaders.UserAgent.ParseAdd("MagazineFetcher/1.0 (+https://github.com/saigkill/MagazineFetcher)");
+	}
 
 	internal async Task<byte[]> DownloadTorrentAsync(string url)
 	{
@@ -33,7 +44,7 @@ public class TorrentDownloader(ILogger<TorrentDownloader> logger)
 		}
 		catch (Exception ex)
 		{
-			logger.LogError($"Error while downloading torrent: {ex.Message}", ex);
+			_logger.LogError($"Error while downloading torrent: {ex.Message}", ex);
 			throw;
 		}
 	}
