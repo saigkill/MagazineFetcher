@@ -111,7 +111,7 @@ public class TorrentDownloaderTest
 		Func<Task> act = async () => await _torrentDownloader.DownloadTorrentAsync(null!);
 
 		// Assert
-		await act.Should().ThrowAsync<InvalidOperationException>();
+		await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -121,6 +121,6 @@ public class TorrentDownloaderTest
 		Func<Task> act = async () => await _torrentDownloader.DownloadTorrentAsync(string.Empty);
 
 		// Assert
-		await act.Should().ThrowAsync<InvalidOperationException>();
+		await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 }

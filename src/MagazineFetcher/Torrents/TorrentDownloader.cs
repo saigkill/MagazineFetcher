@@ -34,6 +34,8 @@ public class TorrentDownloader
 		// Globalen User-Agent setzen (gilt für alle Requests über diesen HttpClient).
 		// Passe die Zeichenfolge an (z.B. Version, Kontakt-URL).
 		_client.DefaultRequestHeaders.UserAgent.ParseAdd("MagazineFetcher/1.0 (+https://github.com/saigkill/MagazineFetcher)");
+
+		_logger = logger;
 	}
 
 	internal async Task<byte[]> DownloadTorrentAsync(string url)
