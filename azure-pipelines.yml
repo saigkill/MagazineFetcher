@@ -270,8 +270,8 @@ stages:
 # ---------------------------------------------------------
 - stage: Release
   displayName: "Create GitHub Release"
-  dependsOn: Build, Build_QPKG
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+  dependsOn: Build_QPKG
+  condition: succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/')
   jobs:
   - job: ReleaseJob
     pool:
