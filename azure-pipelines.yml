@@ -172,7 +172,7 @@ stages:
             # qpkg.cfg erzeugen
             cat <<EOF > qpkg/qpkg.cfg
             QPKG_NAME="MagazineFetcher"
-            QPKG_VER="$(Build.SourceBranchName)"
+            QPKG_VER="$(PackageVersion)
             QPKG_AUTHOR="Sascha Manns"
             QPKG_SUMMARY="Automatic Magazin-Downloader for Torrents via RSS"
             QPKG_RC_NUM="100"
