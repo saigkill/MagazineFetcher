@@ -124,8 +124,7 @@ stages:
       displayName: 'Mirror to Github'
 
     # ZIP nur bei Tags
-    - task: ArchiveFiles@2
-      condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    - task: ArchiveFiles@2      
       inputs:
         rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/MagazineFetcher'
         includeRootFolder: false
@@ -137,7 +136,6 @@ stages:
     # Artefakt veröffentlichen
     - publish: $(Build.ArtifactStagingDirectory)
       artifact: $(RID)
-      condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
       displayName: "Publish Artifact"
 
 # ---------------------------------------------------------
