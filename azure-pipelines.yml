@@ -8,8 +8,7 @@ trigger:
       - v*
 
 pool:
-  vmImage: 'ubuntu-latest'
-  appName: 'MagazineFetcher'
+  vmImage: 'ubuntu-latest'  
 
 variables:
   BuildConfiguration: 'Release'
@@ -29,11 +28,11 @@ stages:
         linux:
           vmImage: 'ubuntu-latest'
           RID: 'linux-x64'
-          ArtifactName: '$(appName)-Linux-$(PackageVersion).zip'
+          ArtifactName: '$(AppName)-Linux-$(PackageVersion).zip'
         windows:
           vmImage: 'windows-latest'
           RID: 'win-x64'
-          ArtifactName: '$(appName)-Windows-$(PackageVersion).zip'
+          ArtifactName: '$(AppName)-Windows-$(PackageVersion).zip'
 
     pool:
       vmImage: $(vmImage)
@@ -60,7 +59,7 @@ stages:
         command: 'publish'
         publishWebProjects: false
         projects: '**/*.csproj'
-        arguments: '--configuration $(BuildConfiguration) -r $(RID) --self-contained true --output $(Build.ArtifactStagingDirectory)/$(appName)'
+        arguments: '--configuration $(BuildConfiguration) -r $(RID) --self-contained true --output $(Build.ArtifactStagingDirectory)/$(AppName)'
       displayName: 'Publish Console App'
 
     # Tests
@@ -109,23 +108,23 @@ stages:
       inputs:
         targetType: 'inline'
         script: |             
-          if [ -d "$(appName)" ]; then
-              rm -rf "$(appName)"
-              echo "Das Verzeichnis '$(appName)' wurde gelöscht."
+          if [ -d "$(AppName)" ]; then
+              rm -rf "$(AppName)"
+              echo "Das Verzeichnis '$(AppName)' wurde gelöscht."
           else
-              echo "Das Verzeichnis '$(appName)' existiert nicht."
+              echo "Das Verzeichnis '$(AppName)' existiert nicht."
           fi
           
-          git clone --mirror https://saigkill:$(AzurePAT)@dev.azure.com/saigkill/$(appName)/_git/$(appName) ./$(appName) --verbose
-          cd $(appName)
-          git remote add github https://saigkill:$(GithubPAT)@github.com/saigkill/$(appName).git
+          git clone --mirror https://saigkill:$(AzurePAT)@dev.azure.com/saigkill/$(AppName)/_git/$(AppName) ./$(AppName) --verbose
+          cd $(AppName)
+          git remote add github https://saigkill:$(GithubPAT)@github.com/saigkill/$(AppName).git
           git push github --mirror
       displayName: 'Mirror to Github'
 
     # ZIP nur bei Tags
     - task: ArchiveFiles@2      
       inputs:
-        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/$(appName)'
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/$(AppName)'
         includeRootFolder: false
         archiveType: 'zip'
         archiveFile: '$(Build.ArtifactStagingDirectory)/$(ArtifactName)'
@@ -170,28 +169,28 @@ stages:
 
             sudo ./InstallToUbuntu.sh install
 
-            qbuild --create-env $(appName)          
+            qbuild --create-env $(AppName)          
 
             # qpkg.cfg erzeugen
-            cat <<EOF > $(appName)/qpkg.cfg
-            QPKG_NAME="$(appName)"
+            cat <<EOF > $(AppName)/qpkg.cfg
+            QPKG_NAME="$(AppName)"
             QPKG_VER="$(PackageVersion)"
             QPKG_AUTHOR="Sascha Manns"
             QPKG_SUMMARY="Automatic Magazin-Downloader for Torrents via RSS"
             QPKG_RC_NUM="100"
-            QPKG_SERVICE_PROGRAM="$(appName).sh"
+            QPKG_SERVICE_PROGRAM="$(AppName).sh"
             EOF
 
             # Startscript erzeugen
-            cat <<'EOF' > $(appName)/shared/$(appName).sh
+            cat <<'EOF' > $(AppName)/shared/$(AppName).sh
             #!/bin/sh
-            QPKG_NAME="$(appName)"
+            QPKG_NAME="$(AppName)"
             QPKG_DIR="$(dirname "$0")"
             APP_DIR="${QPKG_DIR}/build"
             LOG_DIR="${QPKG_DIR}/logs"
             PID_FILE="${QPKG_DIR}/magazinefetcher.pid"
 
-            APP_BIN="${APP_DIR}/$(appName)"            
+            APP_BIN="${APP_DIR}/$(AppName)"            
 
             mkdir -p "$LOG_DIR"
 
@@ -249,7 +248,7 @@ stages:
             exit 0
             EOF
 
-            chmod +x $(appName)/shared/$(appName).sh
+            chmod +x $(AppName)/shared/$(AppName).sh
 
             # Build-Output kopieren
             cp -r $(Build.SourcesDirectory)/build-output/* x86_64
@@ -262,7 +261,7 @@ stages:
         - task: PublishPipelineArtifact@1
           displayName: "Publish QPKG"
           inputs:
-            targetPath: "$(Build.SourcesDirectory)/$(appName)-$(PackageVersion).qpkg"
+            targetPath: "$(Build.SourcesDirectory)/$(AppName)-$(PackageVersion).qpkg"
             artifact: "qpkg"
 
 # ---------------------------------------------------------
@@ -293,7 +292,7 @@ stages:
     - task: GitHubRelease@1
       inputs:
         gitHubConnection: 'github.com_saigkill'
-        repositoryName: 'saigkill/$(appName)'
+        repositoryName: 'saigkill/$(AppName)'
         action: 'create'
         tagSource: 'gitTag'
         assets: |
