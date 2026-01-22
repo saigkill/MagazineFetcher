@@ -164,7 +164,7 @@ stages:
         - script: |
             set -e
 
-            cat <<EOF > InstallToUbuntu.sh
+            cat << 'EOF' > InstallToUbuntu.sh
             #!/bin/bash
             if [ -d "/usr/share/QDK" ]; then
               echo "QDK exists."
@@ -220,7 +220,7 @@ stages:
             EOF
 
             # Startscript erzeugen
-            cat <<'EOF' > $(AppName)/shared/$(AppName).sh
+            cat << 'EOF' > $(AppName)/shared/$(AppName).sh
             #!/bin/sh
             QPKG_NAME="$(AppName)"
             QPKG_DIR="$(dirname "$0")"
