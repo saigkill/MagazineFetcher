@@ -164,6 +164,9 @@ stages:
         - script: |
             set -e
 
+            git clone https://github.com/qnap-dev/QDK.git
+            cd QDK
+
             cat << 'EOF' > InstallToUbuntu.sh
             #!/bin/bash
             if [ -d "/usr/share/QDK" ]; then
@@ -204,13 +207,12 @@ stages:
 
             chmod +x InstallToUbuntu.sh
             sudo ./InstallToUbuntu.sh install
-            cd /usr/share/QDK                     
-
+            
             # Erstelle Environment
             qbuild --create-env $(AppName)          
 
             # qpkg.cfg erzeugen
-            cat <<EOF > $(AppName)/qpkg.cfg
+            cat << 'EOF' > $(AppName)/qpkg.cfg
             QPKG_NAME="$(AppName)"
             QPKG_VER="$(PackageVersion)"
             QPKG_AUTHOR="Sascha Manns"
