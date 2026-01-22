@@ -28,11 +28,11 @@ stages:
         linux:
           vmImage: 'ubuntu-latest'
           RID: 'linux-x64'
-          ArtifactName: 'MagazineFetcher-Linux.zip'
+          ArtifactName: 'MagazineFetcher-Linux-$(PackageVersion).zip'
         windows:
           vmImage: 'windows-latest'
           RID: 'win-x64'
-          ArtifactName: 'MagazineFetcher-Windows.zip'
+          ArtifactName: 'MagazineFetcher-Windows-$(PackageVersion).zip'
 
     pool:
       vmImage: $(vmImage)
@@ -172,7 +172,7 @@ stages:
             # qpkg.cfg erzeugen
             cat <<EOF > qpkg/qpkg.cfg
             QPKG_NAME="MagazineFetcher"
-            QPKG_VER="$(PackageVersion)
+            QPKG_VER="$(PackageVersion)"
             QPKG_AUTHOR="Sascha Manns"
             QPKG_SUMMARY="Automatic Magazin-Downloader for Torrents via RSS"
             QPKG_RC_NUM="100"
@@ -253,14 +253,14 @@ stages:
 
             # QPKG erstellen
             cd qpkg
-            tar -czf ../MagazineFetcher.qpkg *
+            tar -czf ../MagazineFetcher-$(PackageVersion).qpkg *
           displayName: "Assemble QPKG"
 
         # Artifact veröffentlichen
         - task: PublishPipelineArtifact@1
           displayName: "Publish QPKG"
           inputs:
-            targetPath: "$(Build.SourcesDirectory)/MagazineFetcher.qpkg"
+            targetPath: "$(Build.SourcesDirectory)/MagazineFetcher-$(PackageVersion).qpkg"
             artifact: "qpkg"
 
 # ---------------------------------------------------------
