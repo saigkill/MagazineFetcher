@@ -1,0 +1,6 @@
+QPKG_NAME="MagazineFetcher"
+QPKG_VER="{{VERSION}}"
+QPKG_AUTHOR="Sascha Manns"
+QPKG_SUMMARY="Automatic magazine downloader for torrents via RSS"
+QPKG_RC_NUM="100"
+QPKG_SERVICE_PROGRAM="start.sh"

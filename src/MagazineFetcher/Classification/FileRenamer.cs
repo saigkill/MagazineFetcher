@@ -26,7 +26,7 @@ using Microsoft.Extensions.Options;
 
 namespace MagazineFetcher.Classification;
 
-public class FileRenamer(IOptions<Configuration> configuration)
+public class FileRenamer(IOptions<MagazineFetcherOptions> configuration)
 {
 	private readonly string _pattern = configuration.Value.RenamePattern;
 

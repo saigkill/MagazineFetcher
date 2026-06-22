@@ -1,4 +1,4 @@
-// <copyright file="Configuration.cs" company="Sascha Manns">
+// <copyright file="MagazineFetcherOptions.cs" company="Sascha Manns">
 // Copyright (c) 2026 Sascha Manns.
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the “Software”), to deal in the Software without restriction, including
@@ -21,17 +21,20 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MagazineFetcher.AppConfig;
 
-public class Configuration
+public class MagazineFetcherOptions
 {
-	[Required] public string FeedUrl { get; set; } = "";
-	[Required] public string WatchDir { get; set; } = "";
-	[Required] public string HistoryFile { get; set; } = "";
-	[Required] public string TempDirectory { get; set; } = "";
+	[Required] public string FeedUrl { get; set; } = string.Empty;
+	[Required] public string WatchDir { get; set; } = string.Empty;
+	[Required] public string HistoryFile { get; set; } = string.Empty;
+	[Required] public string TempDirectory { get; set; } = string.Empty;
 	[Required] public string RenamePattern { get; set; } = "{Magazine}-{Issue}-{Year}.pdf";
+	[Required] public string WebUiPort { get; set; } = string.Empty;
 	[Required] public Dictionary<string, string> MagazineMapping { get; set; } = new();
 	public QBittorrentClientConfig QBittorrentClient { get; set; } = new();
 	public RssFilterConfig RssFilter { get; set; } = new();
 	public LoggingConfig Logging { get; set; } = new();
+	[Required] public RunMode RunMode { get; set; } = RunMode.Once;
+	[Required] public int DaemonIntervalMinutes { get; set; } = 60;
 }
 
 public class QBittorrentClientConfig
@@ -45,10 +48,16 @@ public class QBittorrentClientConfig
 public class RssFilterConfig
 {
 	[Required] public List<string> TitleContains { get; set; } = new();
-	public string? TitleRegex { get; set; }
+	public string? TitleRegex { get; set; } = string.Empty;
 }
 
 public class LoggingConfig
 {
 	[Required] public string LoggingDirectory { get; set; } = string.Empty;
+}
+
+public enum RunMode
+{
+	Once,
+	Daemon
 }

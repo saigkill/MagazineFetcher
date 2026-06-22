@@ -1,4 +1,4 @@
-// <copyright file="TorrentDownloader.cs" company="Sascha Manns">
+// <copyright file="MagazineClassifier.cs" company="Sascha Manns">
 // Copyright (c) 2026 Sascha Manns.
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the “Software”), to deal in the Software without restriction, including
@@ -17,24 +17,34 @@
 // THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
+using MagazineFetcher.AppConfig;
+
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-namespace MagazineFetcher.Torrents;
+namespace MagazineFetcher.Classification;
 
-public class TorrentDownloader(ILogger<TorrentDownloader> logger)
+public class MagazineClassifier(IOptions<MagazineFetcherOptions> configuration, ILogger<MagazineClassifier> logger)
 {
-	internal HttpClient _client = new();
+	private readonly Dictionary<string, string> _mapping = configuration.Value.MagazineMapping ?? throw new InvalidOperationException("MagazineMapping configuration is missing");
 
-	internal async Task<byte[]> DownloadTorrentAsync(string url)
+	internal string? Classify(string fileName)
 	{
-		try
+		foreach (var kv in _mapping)
 		{
-			return await _client.GetByteArrayAsync(url);
+			try
+			{
+				if (fileName.Contains(kv.Key, StringComparison.OrdinalIgnoreCase))
+					return kv.Value;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError($"Problem while classifying: {ex.Message}", ex);
+				throw;
+			}
 		}
-		catch (Exception ex)
-		{
-			logger.LogError($"Error while downloading torrent: {ex.Message}", ex);
-			throw;
-		}
+
+		return null;
 	}
 }

@@ -35,7 +35,7 @@ namespace MagazineFetcher.Hosting;
 
 public class MagazineFetcher()
 {
-	public IOptions<Configuration> Configuration { get; set; }
+	public IOptions<MagazineFetcherOptions> Configuration { get; set; }
 	public ILogger<MagazineFetcher> Logger { get; set; }
 	public RssFetcher RssFetcher { get; set; }
 	public TorrentHistory TorrentHistory { get; set; }
@@ -45,7 +45,7 @@ public class MagazineFetcher()
 	public FileRenamer FileRenamer { get; set; }
 	public QBittorrentClient QBittorrentClient { get; set; }
 	public DownloadWatcher Downloadwatcher { get; set; }
-	public MagazineFetcher(IOptions<Configuration> configuration, RssFetcher rssFetcher,
+	public MagazineFetcher(IOptions<MagazineFetcherOptions> configuration, RssFetcher rssFetcher,
 	TorrentHistory torrentHistory, TorrentDownloader torrentDownloader,
 	ArchiveExtractor archiveExtractor, MagazineClassifier magazineClassifier,
 	FileRenamer fileRenamer, ILogger<MagazineFetcher> logger, QBittorrentClient qBittorrentClient,
@@ -63,12 +63,38 @@ public class MagazineFetcher()
 		Downloadwatcher = downloadWatcher;
 	}
 
-	internal async Task StartAsync()
+	internal async Task StartAsync(CancellationToken cancellationToken)
 	{
 		var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
-		Logger.LogInformation($"Starte Pipeline im Profil '{environment}'");
+		Logger.LogInformation($"Starting Pipeline in Profile '{environment}'");
 
+		if (Configuration.Value.RunMode == RunMode.Once)
+		{
+			await RunOnceAsync(cancellationToken);
+			return;
+		}
 
+		Logger.LogInformation("Starting in Daemon-Modus. Interval: " + $"{Configuration.Value.DaemonIntervalMinutes} Minutes");
+
+		while (!cancellationToken.IsCancellationRequested)
+		{
+			try
+			{
+				await RunOnceAsync(cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Fehler im Daemon-Durchlauf");
+			}
+
+			await Task.Delay(TimeSpan.FromMinutes(Configuration.Value.DaemonIntervalMinutes), cancellationToken);
+		}
+
+		Logger.LogInformation("Daemon wurde beendet.");
+	}
+
+	private async Task RunOnceAsync(CancellationToken cancellationToken)
+	{
 		var feedUrl = Configuration.Value.FeedUrl;
 		var filter = Configuration.Value.RssFilter;
 

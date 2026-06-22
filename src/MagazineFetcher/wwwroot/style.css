@@ -1,0 +1,136 @@
+/* --- Grundlayout -------------------------------------------------------- */
+
+body {
+	font-family: "Segoe UI", Roboto, sans-serif;
+	background: #f5f7fa;
+	margin: 0;
+	padding: 0;
+	color: #333;
+}
+
+header {
+	background: #67bed9; /* dunkles Blau */
+	color: white;
+	padding: 20px;
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+	header img {
+		height: 60px;
+	}
+
+	header h1 {
+		margin: 0;
+		font-size: 28px;
+		font-weight: 600;
+	}
+
+/* --- Container ---------------------------------------------------------- */
+
+.container {
+	max-width: 900px;
+	margin: 30px auto;
+	background: white;
+	padding: 25px 35px;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* --- Überschriften ------------------------------------------------------ */
+
+h2 {
+	margin-top: 35px;
+	color: #1e3a8a;
+	border-left: 4px solid #1e3a8a;
+	padding-left: 10px;
+}
+
+/* --- Formulare ---------------------------------------------------------- */
+
+label {
+	font-weight: 600;
+	margin-bottom: 4px;
+	display: block;
+}
+
+input, select, textarea {
+	width: 100%;
+	margin: 0 5px 15px 5px;
+	padding: 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	margin-bottom: 15px;
+	font-size: 15px;
+	background: #f8fafc;
+}
+
+	input:focus, select:focus, textarea:focus {
+		outline: none;
+		border-color: #1e3a8a;
+		background: #fff;
+	}
+
+/* --- Buttons ------------------------------------------------------------ */
+
+button {
+	background: #1e3a8a;
+	color: white;
+	border: none;
+	padding: 12px 22px;
+	border-radius: 6px;
+	font-size: 16px;
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+	button:hover {
+		background: #274bb5;
+	}
+
+.add-btn {
+	background: #475569;
+}
+
+	.add-btn:hover {
+		background: #64748b;
+	}
+
+/* --- Mapping Rows ------------------------------------------------------- */
+
+.mapping-row {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 10px;
+}
+
+	.mapping-row input {
+		flex: 1;
+	}
+
+	.mapping-row button {
+		background: #dc2626;
+	}
+
+		.mapping-row button:hover {
+			background: #ef4444;
+		}
+
+/* --- Mobile ------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+	.container {
+		padding: 20px;
+	}
+
+	header {
+		flex-direction: column;
+		text-align: center;
+	}
+
+		header img {
+			height: 50px;
+		}
+}

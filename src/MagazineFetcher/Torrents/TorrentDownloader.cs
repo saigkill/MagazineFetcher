@@ -1,4 +1,4 @@
-// <copyright file="TorrentHistory.cs" company="Sascha Manns">
+// <copyright file="TorrentDownloader.cs" company="Sascha Manns">
 // Copyright (c) 2026 Sascha Manns.
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the “Software”), to deal in the Software without restriction, including
@@ -17,33 +17,37 @@
 // THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
-using System.ComponentModel;
-
-using MagazineFetcher.AppConfig;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace MagazineFetcher.Torrents;
 
-public class TorrentHistory
+public class TorrentDownloader
 {
-	private readonly string _historyFile;
+	internal HttpClient _client = new();
+	internal ILogger<TorrentDownloader> _logger;
 
-	public TorrentHistory(IOptions<Configuration> configuration)
+	public TorrentDownloader(ILogger<TorrentDownloader> logger)
 	{
-		_historyFile = configuration.Value.HistoryFile;
-		if (!File.Exists(_historyFile))
-			File.WriteAllText(_historyFile, "");
+		// Vermeide Keep-Alive, um Probleme mit TLS‑Renegotiation / Verbindung-Reset zu reduzieren.
+		_client.DefaultRequestHeaders.ConnectionClose = true;
+
+		// Globalen User-Agent setzen (gilt für alle Requests über diesen HttpClient).
+		// Passe die Zeichenfolge an (z.B. Version, Kontakt-URL).
+		_client.DefaultRequestHeaders.UserAgent.ParseAdd("MagazineFetcher/1.0 (+https://github.com/saigkill/MagazineFetcher)");
+
+		_logger = logger;
 	}
 
-	internal bool AlreadyProcessed(string title)
+	internal async Task<byte[]> DownloadTorrentAsync(string url)
 	{
-		return File.ReadAllLines(_historyFile).Contains(title);
-	}
-
-	internal void MarkProcessed(string title)
-	{
-		File.AppendAllLines(_historyFile, new[] { title });
+		try
+		{
+			return await _client.GetByteArrayAsync(url);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError($"Error while downloading torrent: {ex.Message}", ex);
+			throw;
+		}
 	}
 }

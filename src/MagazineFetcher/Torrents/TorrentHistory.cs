@@ -1,4 +1,4 @@
-// <copyright file="MagazineClassifier.cs" company="Sascha Manns">
+// <copyright file="TorrentHistory.cs" company="Sascha Manns">
 // Copyright (c) 2026 Sascha Manns.
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the “Software”), to deal in the Software without restriction, including
@@ -17,34 +17,33 @@
 // THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
+using System.ComponentModel;
+
 using MagazineFetcher.AppConfig;
 
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace MagazineFetcher.Classification;
+namespace MagazineFetcher.Torrents;
 
-public class MagazineClassifier(IOptions<Configuration> configuration, ILogger<MagazineClassifier> logger)
+public class TorrentHistory
 {
-	private readonly Dictionary<string, string> _mapping = configuration.Value.MagazineMapping ?? throw new InvalidOperationException("MagazineMapping configuration is missing");
+	private readonly string _historyFile;
 
-	internal string? Classify(string fileName)
+	public TorrentHistory(IOptions<MagazineFetcherOptions> configuration)
 	{
-		foreach (var kv in _mapping)
-		{
-			try
-			{
-				if (fileName.Contains(kv.Key, StringComparison.OrdinalIgnoreCase))
-					return kv.Value;
-			}
-			catch (Exception ex)
-			{
-				logger.LogError($"Problem while classifying: {ex.Message}", ex);
-				throw;
-			}
-		}
+		_historyFile = configuration.Value.HistoryFile;
+		if (!File.Exists(_historyFile))
+			File.WriteAllText(_historyFile, "");
+	}
 
-		return null;
+	internal bool AlreadyProcessed(string title)
+	{
+		return File.ReadAllLines(_historyFile).Contains(title);
+	}
+
+	internal void MarkProcessed(string title)
+	{
+		File.AppendAllLines(_historyFile, new[] { title });
 	}
 }
