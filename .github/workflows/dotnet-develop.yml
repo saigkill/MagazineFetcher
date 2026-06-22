@@ -31,15 +31,15 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Restore dependencies
-        run: dotnet restore MagazineFetcher.slnx
+        run: dotnet restore src/MagazineFetcher.slnx
       - name: Build
-        run: dotnet build MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }}
+        run: dotnet build src/MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }}
       - name: Test
-        run: dotnet test MagazineFetcher.slnx --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=junit.xml" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --results-directory ./TestResults --configuration ${{ env.BUILD_CONFIGURATION }}      
+        run: dotnet test src/MagazineFetcher.slnx --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=junit.xml" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --results-directory ./TestResults --configuration ${{ env.BUILD_CONFIGURATION }}      
       - name: Publish Linux
-        run: dotnet publish MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }} -r linux-x64 --self-contained true
+        run: dotnet publish src/MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }} -r linux-x64 --self-contained true
       - name: Publish Windows
-        run: dotnet publish MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }} -r win-x64 --self-contained true        
+        run: dotnet publish src/MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }} -r win-x64 --self-contained true        
       - name: Run Codacy Analysis CLI
         uses: codacy/codacy-analysis-cli-action@master
       - name: Publish Test Results

@@ -32,15 +32,15 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore dependencies
-        run: dotnet restore MagazineFetcher.slnx
+        run: dotnet restore src/MagazineFetcher.slnx
       - name: Build
-        run: dotnet build MagazineFetcher.slnx --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+        run: dotnet build src/MagazineFetcher.slnx --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
       - name: Test
-        run: dotnet test MagazineFetcher.slnx --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=./TestResults/junit.xml" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --results-directory ./TestResults
+        run: dotnet test src/MagazineFetcher.slnx --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=./TestResults/junit.xml" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --results-directory ./TestResults
       - name: Publish Linux
-        run: dotnet publish MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }} -r linux-x64 --self-contained true
+        run: dotnet publish src/MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }} -r linux-x64 --self-contained true
       - name: Publish Windows
-        run: dotnet publish MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }} -r win-x64 --self-contained true
+        run: dotnet publish src/MagazineFetcher.slnx --no-restore --configuration ${{ env.BUILD_CONFIGURATION }} -r win-x64 --self-contained true
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
@@ -68,14 +68,14 @@ jobs:
         with:
           type: 'zip'
           filename: 'magazinefetcher-linux.zip'
-          path: ./MagazineFetcher/bin/Debug/net10/linux-x64/publish
+          path: ./src/MagazineFetcher/bin/Debug/net10/linux-x64/publish
           exclusions: '*.git*'
       - name: Archive Release Windows
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
           filename: 'magazinefetcher-windows.zip'
-          path: ./MagazineFetcher/bin/Debug/net10/win-x64/publish
+          path: ./src/MagazineFetcher/bin/Debug/net10/win-x64/publish
           exclusions: '*.git*'
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
