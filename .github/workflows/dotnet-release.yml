@@ -15,7 +15,7 @@ permissions:
 
 env:
   BUILD_CONFIGURATION: Release
-  DOTNET_VERSION: 10.0
+  DOTNETVER: 10.0
 
 jobs:
   release:
@@ -69,14 +69,14 @@ jobs:
         with:
           type: 'zip'
           filename: 'magazinefetcher-linux.zip'
-          path: ./src/MagazineFetcher/bin/${{ env.BUILD_CONFIGURATION }}/${{ env.DOTNET_VERSION }}/linux-x64/publish
+          path: ./src/MagazineFetcher/bin/${{ env.BUILD_CONFIGURATION }}/${{ env.DOTNETVER }}/linux-x64/publish
           exclusions: '*.git*'
       - name: Archive Release Windows
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
           filename: 'magazinefetcher-windows.zip'
-          path: ./src/MagazineFetcher/bin/${{ env.BUILD_CONFIGURATION }}/${{ env.DOTNET_VERSION }}/win-x64/publish
+          path: ./src/MagazineFetcher/bin/${{ env.BUILD_CONFIGURATION }}/${{ env.DOTNETVER }}/win-x64/publish
           exclusions: '*.git*'
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
