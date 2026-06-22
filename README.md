@@ -6,20 +6,13 @@ The tool integrates with qBittorrent, processes RSS feeds (e.g., Immortuos), and
 
 ## Badges
 
-|What|Where|
-|---|---|
-| Code | https://dev.azure.com/saigkill/MagazineFetcher |
-
 |What|Status|
 |---|---|
 |Continuous Integration Prod | [![Build Status](https://dev.azure.com/saigkill/MagazineFetcher/_apis/build/status%2FMagazineFetcher-Productive?branchName=master)](https://dev.azure.com/saigkill/MagazineFetcher/_build/latest?definitionId=83&branchName=master)|
 |Continuous Integration Stage | [![Build Status](https://dev.azure.com/saigkill/MagazineFetcher/_apis/build/status%2FMagazineFetcher-Stage?branchName=develop)](https://dev.azure.com/saigkill/MagazineFetcher/_build/latest?definitionId=82&branchName=develop) |
-|Code Coverage | [![Coverage](https://img.shields.io/azure-devops/coverage/saigkill/MagazineFetcher/82)](https://dev.azure.com/saigkill/AdrTool/_build/latest?definitionId=82) |
 |Bugreports|[![GitHub issues](https://img.shields.io/github/issues/saigkill/MagazineFetcher)](https://github.com/saigkill/MagazineFetcher/issues)
 |Blog|[![Blog](https://img.shields.io/badge/Blog-Saigkill-blue)](https://saschamanns.de)|
 |Downloads all|![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/total)|
-|Downloads Linux latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher.Linux.zip)|
-|Downloads Windows latest|![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/saigkill/MagazineFetcher/latest/MagazineFetcher.Windows.zip)|
 
 File a bug report [on Github](https://github.com/saigkill/MagazineFetcher/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen).
 
@@ -50,7 +43,7 @@ text {MagazineTitle} - {IssueDate:yyyy-MM} - {IssueNumber:D2}.pdf
 ```
 
 ## 🛠 System Requirements
-* .NET 9 Runtime
+* .NET 10 Runtime
 * qBittorrent with Web UI enabled
 * Access to download and target directories
 * Optional: Windows network drive mapping for debugging
